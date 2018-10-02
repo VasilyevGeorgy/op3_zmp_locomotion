@@ -86,8 +86,9 @@ private:
 
 
 //Joint limits
-  KDL::JntArray min_joint_limit;
-  KDL::JntArray max_joint_limit;
+//Right leg
+  KDL::JntArray rleg_min_joint_limit;
+  KDL::JntArray rleg_max_joint_limit;
 
 //Right leg
   KDL::Chain rleg_pelvis_to_foot_chain;
@@ -95,12 +96,11 @@ private:
 //Pelvis->foot solvers for leg swing
   KDL::ChainIkSolverPos_LMA *rleg_pelvis_to_foot_ik_pos_solver;
 //Foot->pelvis solvers for COM translation
-  KDL::ChainIkSolverPos_LMA *rleg_foot_to_pelvis_ik_pos_solver;
+  //KDL::ChainIkSolverPos_LMA *rleg_foot_to_pelvis_ik_pos_solver;
 
-
-  //KDL::ChainFkSolverPos_recursive *rleg_foot_to_pelvis_fk_solver;
-  //KDL::ChainIkSolverVel_pinv      *rleg_foot_to_pelvis_ik_vel_solver;
-  //KDL::ChainIkSolverPos_NR_JL     *rleg_foot_to_pelvis_ik_pos_solver;
+  KDL::ChainFkSolverPos_recursive *rleg_foot_to_pelvis_fk_solver;
+  KDL::ChainIkSolverVel_pinv      *rleg_foot_to_pelvis_ik_vel_solver;
+  KDL::ChainIkSolverPos_NR_JL     *rleg_foot_to_pelvis_ik_pos_solver;
 
 //Left leg
   KDL::Chain lleg_pelvis_to_foot_chain;

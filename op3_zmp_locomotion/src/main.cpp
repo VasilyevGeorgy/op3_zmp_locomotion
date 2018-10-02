@@ -10,6 +10,7 @@ int main (int argc, char **argv){
     move_robot.clearance = 20; //mm
     move_robot.step_duration = 2000; //ms
     move_robot.pelvis_position_z = 0.34;
+    move_robot.init_leg = "left";
 
     Eigen::VectorXd rleg_cur_joint_pos;
     Eigen::VectorXd lleg_cur_joint_pos;

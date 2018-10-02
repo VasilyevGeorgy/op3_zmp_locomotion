@@ -38,37 +38,77 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
 
   double step = 0.0002;
 
-  while(pelvis_current_position < lleg_current_pose.p.y()){
+  if (this->init_leg == "right" || this->init_leg == "Right"){
 
-        pelvis_current_position += step;
+      while(pelvis_current_position < lleg_current_pose.p.y()){
 
-        this->moveCOMToLeftLeg(KDL::Frame(pelvis_desired_pose.M,
-                                          KDL::Vector(lleg_current_pose.p.x(),
-                                                       pelvis_current_position,
-                                                       this->pelvis_position_z)),
-                               lleg_des_joint_pos_);
+            pelvis_current_position += step;
 
-
-        l_an_r_msg.data = -lleg_des_joint_pos_(0);
-        ankle_roll = -lleg_des_joint_pos_(0);
-        l_an_p_msg.data = lleg_des_joint_pos_(1);
-        l_kn_p_msg.data = lleg_des_joint_pos_(2);
-        l_hip_p_msg.data = lleg_des_joint_pos_(3);
-        l_hip_r_msg.data = -lleg_des_joint_pos_(4);
-        hip_roll = -lleg_des_joint_pos_(4);
-        l_hip_y_msg.data = lleg_des_joint_pos_(5);
-
-        l_hip_y_pub.publish(l_hip_y_msg);
-        l_hip_r_pub.publish(l_hip_r_msg);
-        l_hip_p_pub.publish(l_hip_p_msg);
-        l_kn_p_pub.publish(l_kn_p_msg);
-        l_an_p_pub.publish(l_an_p_msg);
-        l_an_r_pub.publish(l_an_r_msg);
-
-        ros::spinOnce();
-        loop_rate.sleep();
+            this->moveCOMToLeftLeg(KDL::Frame(pelvis_desired_pose.M,
+                                              KDL::Vector(lleg_current_pose.p.x(),
+                                                           pelvis_current_position,
+                                                           this->pelvis_position_z)),
+                                   lleg_des_joint_pos_);
 
 
+            l_an_r_msg.data =  lleg_des_joint_pos_(0);
+            //ankle_roll = -lleg_des_joint_pos_(0);
+            l_an_p_msg.data =  lleg_des_joint_pos_(1);
+            l_kn_p_msg.data =  lleg_des_joint_pos_(2);
+            l_hip_p_msg.data = lleg_des_joint_pos_(3);
+            l_hip_r_msg.data = lleg_des_joint_pos_(4);
+            //hip_roll = -lleg_des_joint_pos_(4);
+            l_hip_y_msg.data = lleg_des_joint_pos_(5);
+
+            l_hip_y_pub.publish(l_hip_y_msg);
+            l_hip_r_pub.publish(l_hip_r_msg);
+            l_hip_p_pub.publish(l_hip_p_msg);
+            l_kn_p_pub.publish(l_kn_p_msg);
+            l_an_p_pub.publish(l_an_p_msg);
+            l_an_r_pub.publish(l_an_r_msg);
+
+            ros::spinOnce();
+            loop_rate.sleep();
+
+    }
+  }
+  else{
+    if (this->init_leg == "left" || this->init_leg == "Left"){
+
+      while(pelvis_current_position > rleg_current_pose.p.y()){
+
+            pelvis_current_position -= step;
+
+            this->moveCOMToRightLeg(KDL::Frame(pelvis_desired_pose.M,
+                                              KDL::Vector(rleg_current_pose.p.x(),
+                                                           pelvis_current_position,
+                                                           this->pelvis_position_z)),
+                                   rleg_des_joint_pos_);
+
+
+            r_an_r_msg.data =  -rleg_des_joint_pos_(0);
+            //ankle_roll = -rleg_des_joint_pos_(0);
+            r_an_p_msg.data =  -rleg_des_joint_pos_(1);
+            r_kn_p_msg.data =  -rleg_des_joint_pos_(2);
+            r_hip_p_msg.data = -rleg_des_joint_pos_(3);
+            r_hip_r_msg.data = -rleg_des_joint_pos_(4);
+            //hip_roll = -rleg_des_joint_pos_(4);
+            r_hip_y_msg.data =  rleg_des_joint_pos_(5);
+
+            r_hip_y_pub.publish(r_hip_y_msg);
+            r_hip_r_pub.publish(r_hip_r_msg);
+            r_hip_p_pub.publish(r_hip_p_msg);
+            r_kn_p_pub.publish(r_kn_p_msg);
+            r_an_p_pub.publish(r_an_p_msg);
+            r_an_r_pub.publish(r_an_r_msg);
+
+            ros::spinOnce();
+            loop_rate.sleep();
+
+      }
+    }
+    else
+      ROS_INFO("Please choose initial swing leg properly!");
   }
 
 }

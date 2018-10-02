@@ -28,9 +28,10 @@ op3_zmp_locomotion::op3_zmp_locomotion(){
 }
 
 op3_zmp_locomotion::~op3_zmp_locomotion(){
-  //delete rleg_foot_to_pelvis_fk_solver;
-  //delete rleg_foot_to_pelvis_ik_vel_solver;
-
+/////
+  delete rleg_foot_to_pelvis_fk_solver;
+  delete rleg_foot_to_pelvis_ik_vel_solver;
+/////
   delete rleg_pelvis_to_foot_ik_pos_solver;
   delete rleg_foot_to_pelvis_ik_pos_solver;
 
@@ -50,22 +51,22 @@ void op3_zmp_locomotion::initialize(KDL::Frame pelvis_pose, KDL::Frame rfoot_pos
   this->op3_left_leg(pelvis_pose, lfoot_pose);
 
 // Set Joint Limits
-  std::vector<double> min_position_limit_, max_position_limit_;
-  min_position_limit_.push_back(-180.0);  max_position_limit_.push_back(180.0); // an_r
-  min_position_limit_.push_back(-180.0);	max_position_limit_.push_back(180.0); // an_p
-  min_position_limit_.push_back(-180.0);  max_position_limit_.push_back(180.0); // kn_p
-  min_position_limit_.push_back(-180.0);	max_position_limit_.push_back(180.0); // hip_p
-  min_position_limit_.push_back(-180.0);	max_position_limit_.push_back(180.0); // hip_r
-  min_position_limit_.push_back(-180.0);  max_position_limit_.push_back(180.0); // hip_y
+  std::vector<double> rleg_min_position_limit_, rleg_max_position_limit_;
+  rleg_min_position_limit_.push_back(-90.0); rleg_max_position_limit_.push_back(90.0); // an_r
+  rleg_min_position_limit_.push_back(-90.0);	rleg_max_position_limit_.push_back(90.0); // an_p
+  rleg_min_position_limit_.push_back(-0.01); rleg_max_position_limit_.push_back(180.0); // kn_p
+  rleg_min_position_limit_.push_back(-180.0);	rleg_max_position_limit_.push_back(10.0); // hip_p
+  rleg_min_position_limit_.push_back(-90.0);	rleg_max_position_limit_.push_back(90.0); // hip_r
+  rleg_min_position_limit_.push_back(-90.0); rleg_max_position_limit_.push_back(90.0); // hip_y
 
-  min_joint_limit.resize(JOINT_NUM);
-  max_joint_limit.resize(JOINT_NUM);
+  rleg_min_joint_limit.resize(JOINT_NUM);
+  rleg_max_joint_limit.resize(JOINT_NUM);
 
   for (int i=0; i<JOINT_NUM; i++)
   {
-    min_joint_limit(i) = min_position_limit_[i]*D2R; //D2R - degrees to radians
+    rleg_min_joint_limit(i) = rleg_min_position_limit_[i]*D2R; //D2R - degrees to radians
     //ROS_INFO("joint [%d] min: %f", i, min_joint_position_limit(i));
-    max_joint_limit(i) = max_position_limit_[i]*D2R;
+    rleg_max_joint_limit(i) = rleg_max_position_limit_[i]*D2R;
     //ROS_INFO("joint [%d] max: %f", i, max_joint_position_limit(i));
   }
 
@@ -74,9 +75,9 @@ void op3_zmp_locomotion::initialize(KDL::Frame pelvis_pose, KDL::Frame rfoot_pos
                                                                        1E-5,
                                                                        300);
 
-  rleg_foot_to_pelvis_ik_pos_solver = new KDL::ChainIkSolverPos_LMA(rleg_foot_to_pelvis_chain,
-                                                                       1E-5,
-                                                                       300);
+  //rleg_foot_to_pelvis_ik_pos_solver = new KDL::ChainIkSolverPos_LMA(rleg_foot_to_pelvis_chain,
+  //                                                                     1E-5,
+  //                                                                     300);
 
   lleg_pelvis_to_foot_ik_pos_solver = new KDL::ChainIkSolverPos_LMA(lleg_pelvis_to_foot_chain,
                                                                        1E-5,
@@ -86,14 +87,15 @@ void op3_zmp_locomotion::initialize(KDL::Frame pelvis_pose, KDL::Frame rfoot_pos
                                                                        1E-5,
                                                                        300);
 
-  //rleg_foot_to_pelvis_fk_solver = new KDL::ChainFkSolverPos_recursive(rleg_foot_to_pelvis_chain);
-  //rleg_foot_to_pelvis_ik_vel_solver = new KDL::ChainIkSolverVel_pinv(rleg_foot_to_pelvis_chain);
-  //rleg_foot_to_pelvis_ik_pos_solver = new KDL::ChainIkSolverPos_NR_JL(rleg_foot_to_pelvis_chain,
-  //                                                                       min_joint_limit, max_joint_limit,
-  //                                                                       *rleg_foot_to_pelvis_fk_solver,
-  //                                                                       *rleg_foot_to_pelvis_ik_vel_solver
-  //                                                                       );
-
+/////
+  rleg_foot_to_pelvis_fk_solver = new KDL::ChainFkSolverPos_recursive(rleg_foot_to_pelvis_chain);
+  rleg_foot_to_pelvis_ik_vel_solver = new KDL::ChainIkSolverVel_pinv(rleg_foot_to_pelvis_chain);
+  rleg_foot_to_pelvis_ik_pos_solver = new KDL::ChainIkSolverPos_NR_JL(rleg_foot_to_pelvis_chain,
+                                                                         rleg_min_joint_limit, rleg_max_joint_limit,
+                                                                         *rleg_foot_to_pelvis_fk_solver,
+                                                                         *rleg_foot_to_pelvis_ik_vel_solver
+                                                                         );
+/////
 
 }
 
@@ -114,13 +116,14 @@ bool op3_zmp_locomotion::moveCOMToRightLeg(KDL::Frame pelvis_des_pose, Eigen::Ve
   {
     ROS_WARN("RIGHT LEG IK ERROR : %s", rleg_foot_to_pelvis_ik_pos_solver->strError(ik_pose_err));
     for (int i=0; i<JOINT_NUM;i++){
-      rleg_des_joint_pos_(i) = rleg_joint_position(i);
+      //rleg_des_joint_pos_(i) = rleg_joint_position(i);
     }
     return false;
   }
   else {
     for (int i=0; i<JOINT_NUM;i++){
-      rleg_des_joint_pos_(i) = rleg_des_joint_pos(i);
+      //if (fabs(rleg_des_joint_pos(i))<2*M_PI)
+        rleg_des_joint_pos_(i) = rleg_des_joint_pos(i);
     }
     ROS_INFO("Right leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f",
              rleg_des_joint_pos_[0]*R2D,rleg_des_joint_pos_[1]*R2D,rleg_des_joint_pos_[2]*R2D,
