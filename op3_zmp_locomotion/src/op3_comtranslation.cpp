@@ -40,7 +40,7 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
   double pelvis_current_position_x = 0.0;
   double pelvis_current_position_y = pelvis_current_pose.p.y(); // pelvis_current_pose.p.y();
 
-  ros::Rate loop_rate(80);
+  ros::Rate loop_rate(40);
 
   double step = 0.0002;
 

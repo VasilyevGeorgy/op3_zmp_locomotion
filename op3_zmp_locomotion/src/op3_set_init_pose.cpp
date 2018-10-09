@@ -52,7 +52,7 @@ void op3_zmp_locomotion::move_pelvis(KDL::Frame &pelvis_des_pose, double &pelvis
 
 bool op3_zmp_locomotion::setInitPose(KDL::Frame pelvis_des_pose, Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::VectorXd &lleg_cur_joint_pos_){
 
-  ros::Rate loop_rate(60);
+  ros::Rate loop_rate(30);
 
   //op3_zmp_locomotion move_pelvis;
 

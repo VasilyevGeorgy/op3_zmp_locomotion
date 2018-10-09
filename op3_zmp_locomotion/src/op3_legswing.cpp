@@ -17,14 +17,24 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
 
   for (int i=0;i<6;i++)
   {
-    rleg_joint_pos_(i) = rleg_cur_joint_pos_(i);
-    lleg_joint_pos_(i) = lleg_cur_joint_pos_(i);
+    rleg_joint_pos_(i) = rleg_cur_joint_pos_(5-i);
+    lleg_joint_pos_(i) = lleg_cur_joint_pos_(5-i);
 //if NOT changed during CoM translating
-    rleg_des_joint_pos_(i) = rleg_cur_joint_pos_(i);
-    lleg_des_joint_pos_(i) = lleg_cur_joint_pos_(i);
+    rleg_des_joint_pos_(i) = rleg_cur_joint_pos_(5-i);
+    lleg_des_joint_pos_(i) = lleg_cur_joint_pos_(5-i);
   }
 
+  ROS_INFO("\n\n\nLeft leg (deg):%f, %f, %f, %f, %f, %f\n\n\n",
+           lleg_joint_position.data(0)*R2D,lleg_joint_position.data(1)*R2D,lleg_joint_position.data(2)*R2D,
+           lleg_joint_position.data(3)*R2D,lleg_joint_position.data(4)*R2D,lleg_joint_position.data(5)*R2D
+           );
+
   this->setJointPosition(rleg_joint_pos_,lleg_joint_pos_);
+
+  ROS_INFO("\n\n\nLeft leg (deg):%f, %f, %f, %f, %f, %f\n\n\n",
+           lleg_joint_position.data(0)*R2D,lleg_joint_position.data(1)*R2D,lleg_joint_position.data(2)*R2D,
+           lleg_joint_position.data(3)*R2D,lleg_joint_position.data(4)*R2D,lleg_joint_position.data(5)*R2D
+           );
 
   ROS_INFO("Start leg swing!");
 
@@ -71,7 +81,7 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
       ROS_INFO("t_param: %f", t_param);
 
       x_t = -(this->step_length/4*(1-cos(t_param))/1000);
-      y_t = y_offset*(sin(t_param) - 1);
+      y_t = y_offset*sin(t_param) ;
       z_t = this->clearance*sin(t_param)/1000;
 
       //ROS_INFO("x_t: %f;   z_t: %f", x_t,z_t);
@@ -79,69 +89,7 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
       if(y_offset == -0.035){
 
         this->moveRightLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                                          KDL::Vector(x_t, y_offset, z_t)), //Check it!!!
-                               rleg_des_joint_pos_);
-
-        r_an_r_msg.data =  rleg_des_joint_pos_(5);
-        r_an_p_msg.data =  rleg_des_joint_pos_(4);
-        r_kn_p_msg.data =  rleg_des_joint_pos_(3);
-        r_hip_p_msg.data = rleg_des_joint_pos_(2);
-        r_hip_r_msg.data = rleg_des_joint_pos_(1);
-        r_hip_y_msg.data = rleg_des_joint_pos_(0);
-
-        r_hip_y_pub.publish(r_hip_y_msg);
-        r_hip_r_pub.publish(r_hip_r_msg);
-        r_hip_p_pub.publish(r_hip_p_msg);
-        r_kn_p_pub.publish(r_kn_p_msg);
-        r_an_p_pub.publish(r_an_p_msg);
-        r_an_r_pub.publish(r_an_r_msg);
-
-        //rleg_current_pose.p.x() = -x_t;
-        //rleg_current_pose.p.y() = y_t;
-        //rleg_current_pose.p.z() = z_t;
-
-        rleg_current_pose.p.data[0] = -x_t;
-        rleg_current_pose.p.data[1] = -y_t;
-        rleg_current_pose.p.data[2] = z_t;
-
-      }
-      else{
-        this->moveLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                                          KDL::Vector(x_t, -y_t, z_t)),
-                               lleg_des_joint_pos_);
-
-        l_an_r_msg.data =  -lleg_des_joint_pos_(5);
-        l_an_p_msg.data =  -lleg_des_joint_pos_(4);
-        l_kn_p_msg.data =  -lleg_des_joint_pos_(3);
-        l_hip_p_msg.data = -lleg_des_joint_pos_(2);
-        l_hip_r_msg.data = -lleg_des_joint_pos_(1);
-        l_hip_y_msg.data = lleg_des_joint_pos_(0);
-
-        l_hip_y_pub.publish(l_hip_y_msg);
-        l_hip_r_pub.publish(l_hip_r_msg);
-        l_hip_p_pub.publish(l_hip_p_msg);
-        l_kn_p_pub.publish(l_kn_p_msg);
-        l_an_p_pub.publish(l_an_p_msg);
-        l_an_r_pub.publish(l_an_r_msg);
-
-        lleg_current_pose.p.data[0] = -x_t;
-        lleg_current_pose.p.data[1] = y_t;
-        lleg_current_pose.p.data[2] = z_t;
-
-      }
-
-    }
-
-    if (foot_up_time<cur_time && cur_time<= (foot_up_time + foot_transl_time)){
-
-      x_t = -cur_time/this->step_duration*this->step_length/1000;
-      y_t = 0.0;
-      z_t = this->clearance/1000;
-
-      if(y_offset == -0.035){
-
-        this->moveRightLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                                          KDL::Vector(x_t, y_t, z_t)), //Check it!!!
+                                          KDL::Vector(x_t, 0.0, z_t)), //Check it!!!
                                rleg_des_joint_pos_);
 
         r_an_r_msg.data =  rleg_des_joint_pos_(5);
@@ -165,82 +113,14 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
       }
       else{
         this->moveLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                                          KDL::Vector(x_t, y_t, z_t)),
+                                          KDL::Vector(0.0, 0.0, z_t)), // -y_t
                                lleg_des_joint_pos_);
 
-        l_an_r_msg.data =  -lleg_des_joint_pos_(5);
-        l_an_p_msg.data =  -lleg_des_joint_pos_(4);
-        l_kn_p_msg.data =  -lleg_des_joint_pos_(3);
-        l_hip_p_msg.data = -lleg_des_joint_pos_(2);
-        l_hip_r_msg.data = -lleg_des_joint_pos_(1);
-        l_hip_y_msg.data = lleg_des_joint_pos_(0);
-
-        l_hip_y_pub.publish(l_hip_y_msg);
-        l_hip_r_pub.publish(l_hip_r_msg);
-        l_hip_p_pub.publish(l_hip_p_msg);
-        l_kn_p_pub.publish(l_kn_p_msg);
-        l_an_p_pub.publish(l_an_p_msg);
-        l_an_r_pub.publish(l_an_r_msg);
-
-        lleg_current_pose.p.data[0] = -x_t;
-        lleg_current_pose.p.data[1] = y_t;
-        lleg_current_pose.p.data[2] = z_t;
-
-      }
-
-      //ROS_INFO("cur_x: %f", -cur_time/this->step_duration*this->step_length/1000);
-    }
-
-    //x_t = 0.0;
-    //z_t = 0.0;
-
-    if ((foot_up_time + foot_transl_time) < cur_time && cur_time <= this->step_duration){
-
-      t_param = M_PI/2*(cur_time-foot_up_time-foot_transl_time)/foot_down_time;
-
-      ROS_INFO("t_param: %f!", t_param);
-
-      x_t = -(this->step_length/4*(1-cos(t_param))/1000 + (this->step_length)/1000.*3/4);
-      y_t = y_offset*sin(t_param)/4;
-      z_t = this->clearance*(1-sin(t_param))/1000;
-
-      //ROS_INFO("x_t: %f; z_t: %f", x_t, z_t);
-
-      if(y_offset == -0.035){
-
-        this->moveRightLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                                          KDL::Vector(x_t, y_t, z_t)), //Check it!!!
-                               rleg_des_joint_pos_);
-
-        r_an_r_msg.data =  rleg_des_joint_pos_(5);
-        r_an_p_msg.data =  rleg_des_joint_pos_(4);
-        r_kn_p_msg.data =  rleg_des_joint_pos_(3);
-        r_hip_p_msg.data = rleg_des_joint_pos_(2);
-        r_hip_r_msg.data = rleg_des_joint_pos_(1);
-        r_hip_y_msg.data = rleg_des_joint_pos_(0);
-
-        r_hip_y_pub.publish(r_hip_y_msg);
-        r_hip_r_pub.publish(r_hip_r_msg);
-        r_hip_p_pub.publish(r_hip_p_msg);
-        r_kn_p_pub.publish(r_kn_p_msg);
-        r_an_p_pub.publish(r_an_p_msg);
-        r_an_r_pub.publish(r_an_r_msg);
-
-        rleg_current_pose.p.data[0] = -x_t;
-        rleg_current_pose.p.data[1] = -y_t;
-        rleg_current_pose.p.data[2] = z_t;
-
-      }
-      else{
-        this->moveLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                                          KDL::Vector(x_t, -y_t, z_t)),
-                               lleg_des_joint_pos_);
-
-        l_an_r_msg.data =  -lleg_des_joint_pos_(5);
-        l_an_p_msg.data =  -lleg_des_joint_pos_(4);
-        l_kn_p_msg.data =  -lleg_des_joint_pos_(3);
-        l_hip_p_msg.data = -lleg_des_joint_pos_(2);
-        l_hip_r_msg.data = -lleg_des_joint_pos_(1);
+        l_an_r_msg.data =  lleg_des_joint_pos_(5);
+        l_an_p_msg.data =  lleg_des_joint_pos_(4);
+        l_kn_p_msg.data =  lleg_des_joint_pos_(3);
+        l_hip_p_msg.data = lleg_des_joint_pos_(2);
+        l_hip_r_msg.data = lleg_des_joint_pos_(1);
         l_hip_y_msg.data = lleg_des_joint_pos_(0);
 
         l_hip_y_pub.publish(l_hip_y_msg);
@@ -257,6 +137,132 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
       }
 
     }
+
+    //if (foot_up_time<cur_time && cur_time<= (foot_up_time + foot_transl_time)){
+    //
+    //  x_t = -cur_time/this->step_duration*this->step_length/1000;
+    //  y_t = y_offset;
+    //  z_t = this->clearance/1000;
+    //
+    //  if(y_offset == -0.035){
+    //
+    //    this->moveRightLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+    //                                      KDL::Vector(x_t, y_t, z_t)), //Check it!!!
+    //                           rleg_des_joint_pos_);
+    //
+    //    r_an_r_msg.data =  rleg_des_joint_pos_(5);
+    //    r_an_p_msg.data =  rleg_des_joint_pos_(4);
+    //    r_kn_p_msg.data =  rleg_des_joint_pos_(3);
+    //    r_hip_p_msg.data = rleg_des_joint_pos_(2);
+    //    r_hip_r_msg.data = rleg_des_joint_pos_(1);
+    //    r_hip_y_msg.data = rleg_des_joint_pos_(0);
+    //
+    //    r_hip_y_pub.publish(r_hip_y_msg);
+    //    r_hip_r_pub.publish(r_hip_r_msg);
+    //    r_hip_p_pub.publish(r_hip_p_msg);
+    //    r_kn_p_pub.publish(r_kn_p_msg);
+    //    r_an_p_pub.publish(r_an_p_msg);
+    //    r_an_r_pub.publish(r_an_r_msg);
+    //
+    //    rleg_current_pose.p.data[0] = -x_t;
+    //    rleg_current_pose.p.data[1] = -y_t;
+    //    rleg_current_pose.p.data[2] = z_t;
+    //
+    //  }
+    //  else{
+    //    this->moveLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+    //                                      KDL::Vector(x_t, -y_t, z_t)),
+    //                           lleg_des_joint_pos_);
+    //
+    //    l_an_r_msg.data =  -lleg_des_joint_pos_(5);
+    //    l_an_p_msg.data =  -lleg_des_joint_pos_(4);
+    //    l_kn_p_msg.data =  -lleg_des_joint_pos_(3);
+    //    l_hip_p_msg.data = -lleg_des_joint_pos_(2);
+    //    l_hip_r_msg.data = -lleg_des_joint_pos_(1);
+    //    l_hip_y_msg.data = lleg_des_joint_pos_(0);
+    //
+    //    l_hip_y_pub.publish(l_hip_y_msg);
+    //    l_hip_r_pub.publish(l_hip_r_msg);
+    //    l_hip_p_pub.publish(l_hip_p_msg);
+    //    l_kn_p_pub.publish(l_kn_p_msg);
+    //    l_an_p_pub.publish(l_an_p_msg);
+    //    l_an_r_pub.publish(l_an_r_msg);
+    //
+    //    lleg_current_pose.p.data[0] = -x_t;
+    //    lleg_current_pose.p.data[1] = y_t;
+    //    lleg_current_pose.p.data[2] = z_t;
+    //
+    //  }
+    //
+    //  //ROS_INFO("cur_x: %f", -cur_time/this->step_duration*this->step_length/1000);
+    //}
+    //
+    ////x_t = 0.0;
+    ////z_t = 0.0;
+    //
+    //if ((foot_up_time + foot_transl_time) < cur_time && cur_time <= this->step_duration){
+    //
+    //  t_param = M_PI/2*(cur_time-foot_up_time-foot_transl_time)/foot_down_time;
+    //
+    //  ROS_INFO("t_param: %f!", t_param);
+    //
+    //  x_t = -(this->step_length/4*(1-cos(t_param))/1000 + (this->step_length)/1000.*3/4);
+    //  y_t = -y_offset - y_offset*sin(t_param);
+    //  z_t = this->clearance*(1-sin(t_param))/1000;
+    //
+    //  //ROS_INFO("x_t: %f; z_t: %f", x_t, z_t);
+    //
+    //  if(y_offset == -0.035){
+    //
+    //    this->moveRightLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+    //                                      KDL::Vector(x_t, y_t, z_t)), //Check it!!!
+    //                           rleg_des_joint_pos_);
+    //
+    //    r_an_r_msg.data =  rleg_des_joint_pos_(5);
+    //    r_an_p_msg.data =  rleg_des_joint_pos_(4);
+    //    r_kn_p_msg.data =  rleg_des_joint_pos_(3);
+    //    r_hip_p_msg.data = rleg_des_joint_pos_(2);
+    //    r_hip_r_msg.data = rleg_des_joint_pos_(1);
+    //    r_hip_y_msg.data = rleg_des_joint_pos_(0);
+    //
+    //    r_hip_y_pub.publish(r_hip_y_msg);
+    //    r_hip_r_pub.publish(r_hip_r_msg);
+    //    r_hip_p_pub.publish(r_hip_p_msg);
+    //    r_kn_p_pub.publish(r_kn_p_msg);
+    //    r_an_p_pub.publish(r_an_p_msg);
+    //    r_an_r_pub.publish(r_an_r_msg);
+    //
+    //    rleg_current_pose.p.data[0] = -x_t;
+    //    rleg_current_pose.p.data[1] = -y_t;
+    //    rleg_current_pose.p.data[2] = z_t;
+    //
+    //  }
+    //  else{
+    //    this->moveLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+    //                                      KDL::Vector(x_t, y_t, z_t)),
+    //                           lleg_des_joint_pos_);
+    //
+    //    l_an_r_msg.data =  -lleg_des_joint_pos_(5);
+    //    l_an_p_msg.data =  -lleg_des_joint_pos_(4);
+    //    l_kn_p_msg.data =  -lleg_des_joint_pos_(3);
+    //    l_hip_p_msg.data = -lleg_des_joint_pos_(2);
+    //    l_hip_r_msg.data = -lleg_des_joint_pos_(1);
+    //    l_hip_y_msg.data = lleg_des_joint_pos_(0);
+    //
+    //    l_hip_y_pub.publish(l_hip_y_msg);
+    //    l_hip_r_pub.publish(l_hip_r_msg);
+    //    l_hip_p_pub.publish(l_hip_p_msg);
+    //    l_kn_p_pub.publish(l_kn_p_msg);
+    //    l_an_p_pub.publish(l_an_p_msg);
+    //    l_an_r_pub.publish(l_an_r_msg);
+    //
+    //    lleg_current_pose.p.data[0] = -x_t;
+    //    lleg_current_pose.p.data[1] = y_t;
+    //    lleg_current_pose.p.data[2] = z_t;
+    //
+    //  }
+    //
+    //}
 
     ROS_INFO("x_t: %f;   y_t: %f", lleg_current_pose.p.x(), lleg_current_pose.p.y());
 

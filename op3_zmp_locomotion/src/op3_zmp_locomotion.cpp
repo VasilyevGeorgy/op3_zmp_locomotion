@@ -144,7 +144,7 @@ void op3_zmp_locomotion::initialize(KDL::Frame pelvis_pose, KDL::Frame rfoot_pos
   lleg_pelvis_to_foot_min_position_limit_.push_back(-90.0); lleg_pelvis_to_foot_max_position_limit_.push_back(90.0); // hip_y
   lleg_pelvis_to_foot_min_position_limit_.push_back(-90.0);	lleg_pelvis_to_foot_max_position_limit_.push_back(90.0); // hip_r
   lleg_pelvis_to_foot_min_position_limit_.push_back(-90.0); lleg_pelvis_to_foot_max_position_limit_.push_back(90.0); // hip_p
-  lleg_pelvis_to_foot_min_position_limit_.push_back(-90.0);	lleg_pelvis_to_foot_max_position_limit_.push_back(90.0); // kn_p
+  lleg_pelvis_to_foot_min_position_limit_.push_back(-0.01);	lleg_pelvis_to_foot_max_position_limit_.push_back(90.0); // kn_p
   lleg_pelvis_to_foot_min_position_limit_.push_back(-90.0);	lleg_pelvis_to_foot_max_position_limit_.push_back(90.0); // an_p
   lleg_pelvis_to_foot_min_position_limit_.push_back(-90.0); lleg_pelvis_to_foot_max_position_limit_.push_back(90.0); // an_r
 
@@ -164,17 +164,12 @@ void op3_zmp_locomotion::initialize(KDL::Frame pelvis_pose, KDL::Frame rfoot_pos
     lleg_pelvis_to_foot_max_position_limit(i) = lleg_pelvis_to_foot_max_position_limit_[i]*D2R;
 
 
-    //lleg_pelvis_to_foot_min_position_limit(i) = lleg_foot_to_pelvis_min_position_limit_[(JOINT_NUM-1)-i]*D2R;
-    //lleg_pelvis_to_foot_max_position_limit(i) = lleg_foot_to_pelvis_max_position_limit_[(JOINT_NUM-1)-i]*D2R;
-    //lleg_pelvis_to_foot_min_position_limit(0) = -90.0*D2R;
-    //lleg_pelvis_to_foot_max_position_limit(0) = 90.0*D2R;
-    //lleg_pelvis_to_foot_min_position_limit(i) = -90.0*D2R;
-    //lleg_pelvis_to_foot_max_position_limit(i) = 90.0*D2R;
-
-
-
-    ROS_INFO("lleg_pelvis_to_foot_min_position_limit(%d): %f;   lleg_pelvis_to_foot_max_position_limit(%d): %f",
-             i,lleg_pelvis_to_foot_min_position_limit(i)*R2D,i,lleg_pelvis_to_foot_max_position_limit(i)*R2D);
+    //lleg_pelvis_to_foot_min_position_limit(i) = lleg_foot_to_pelvis_max_position_limit_[(JOINT_NUM-1)-i]*D2R;
+    //lleg_pelvis_to_foot_max_position_limit(i) = lleg_foot_to_pelvis_min_position_limit_[(JOINT_NUM-1)-i]*D2R;
+    //
+    //
+    //ROS_INFO("lleg_pelvis_to_foot_min_position_limit(%d): %f;   lleg_pelvis_to_foot_max_position_limit(%d): %f",
+    //         i,lleg_pelvis_to_foot_min_position_limit(i)*R2D,i,lleg_pelvis_to_foot_max_position_limit(i)*R2D);
 
   }
 
