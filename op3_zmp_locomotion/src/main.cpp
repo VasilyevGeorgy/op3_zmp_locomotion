@@ -41,12 +41,12 @@ int main (int argc, char **argv){
 
     //move_robot.comTranslation(rleg_cur_joint_pos, lleg_cur_joint_pos);
 
-    //move_robot.moveCOMToLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-    //                                       KDL::Vector(move_robot.lleg_current_pose.p.x(),
-    //                                                   move_robot.lleg_current_pose.p.y(),
-    //                                                   move_robot.pelvis_position_z)),
-    //                            lleg_cur_joint_pos);
-    //
+    move_robot.moveCOMToLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+                                           KDL::Vector(0.0, // move_robot.lleg_current_pose.p.x()
+                                                       0.0, // move_robot.lleg_current_pose.p.y()
+                                                       move_robot.pelvis_position_z)),
+                                lleg_cur_joint_pos);
+
 
 
     return 0;
