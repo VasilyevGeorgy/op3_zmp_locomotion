@@ -146,7 +146,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(op3_zmp_locomotion src/main.cpp src/op3_left_leg_chain.cpp src/op3_right_leg_chain.cpp src/op3_set_init_pose.cpp src/op3_zmp_locomotion.cpp src/op3_comtranslation.cpp)
+ add_executable(op3_zmp_locomotion src/main.cpp src/op3_left_leg_chain.cpp src/op3_right_leg_chain.cpp src/op3_set_init_pose.cpp src/op3_zmp_locomotion.cpp src/op3_comtranslation.cpp src/op3_legswing.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

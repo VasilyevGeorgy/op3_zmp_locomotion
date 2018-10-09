@@ -6,7 +6,7 @@ void op3_zmp_locomotion::op3_left_leg(KDL::Frame pelvis_pose, KDL::Frame lfoot_p
                                        KDL::Joint(KDL::Joint::None),
                                        lfoot_pose, // from base to foot
                                        KDL::RigidBodyInertia(0.0,
-                                                             KDL::Vector(0.0, 0.0, 0.0),
+                                                             KDL::Vector(0.0, 0.035, 0.0), // KDL::Vector(0.0, 0.0, 0.0)!!!!!!!!!
                                                              KDL::RotationalInertia(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
                                                              )
                                        )
