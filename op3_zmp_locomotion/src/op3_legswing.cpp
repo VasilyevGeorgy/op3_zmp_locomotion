@@ -15,7 +15,7 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
   rleg_des_joint_pos_.resize(JOINT_NUM);
   lleg_des_joint_pos_.resize(JOINT_NUM);
 
-  for (int i=0;i<6;i++)
+  for (int i=0;i<JOINT_NUM;i++)
   {
     rleg_joint_pos_(i) = rleg_cur_joint_pos_((JOINT_NUM-1)-i);
     lleg_joint_pos_(i) = lleg_cur_joint_pos_((JOINT_NUM-1)-i);
@@ -92,12 +92,12 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
                                           KDL::Vector(x_t, 0.0, z_t)), //Check it!!!
                                rleg_des_joint_pos_);
 
-        r_an_r_msg.data =  rleg_des_joint_pos_(5);
-        r_an_p_msg.data =  rleg_des_joint_pos_(4);
-        r_kn_p_msg.data =  rleg_des_joint_pos_(3);
-        r_hip_p_msg.data = rleg_des_joint_pos_(2);
-        r_hip_r_msg.data = rleg_des_joint_pos_(1);
-        r_hip_y_msg.data = rleg_des_joint_pos_(0);
+        r_an_r_msg.data =  rleg_des_joint_pos_(0);
+        r_an_p_msg.data =  rleg_des_joint_pos_(1);
+        r_kn_p_msg.data =  rleg_des_joint_pos_(2);
+        r_hip_p_msg.data = rleg_des_joint_pos_(3);
+        r_hip_r_msg.data = rleg_des_joint_pos_(4);
+        r_hip_y_msg.data = rleg_des_joint_pos_(5);
 
         r_hip_y_pub.publish(r_hip_y_msg);
         r_hip_r_pub.publish(r_hip_r_msg);
@@ -116,12 +116,12 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
                                           KDL::Vector(x_t, y_t, z_t)), // -y_t
                                lleg_des_joint_pos_);
 
-        l_an_r_msg.data =  lleg_des_joint_pos_(5);
-        l_an_p_msg.data =  lleg_des_joint_pos_(4);
-        l_kn_p_msg.data =  lleg_des_joint_pos_(3);
-        l_hip_p_msg.data = lleg_des_joint_pos_(2);
-        l_hip_r_msg.data = lleg_des_joint_pos_(1);
-        l_hip_y_msg.data = lleg_des_joint_pos_(0);
+        l_an_r_msg.data =  lleg_des_joint_pos_(0);
+        l_an_p_msg.data =  lleg_des_joint_pos_(1);
+        l_kn_p_msg.data =  lleg_des_joint_pos_(2);
+        l_hip_p_msg.data = lleg_des_joint_pos_(3);
+        l_hip_r_msg.data = lleg_des_joint_pos_(4);
+        l_hip_y_msg.data = lleg_des_joint_pos_(5);
 
         l_hip_y_pub.publish(l_hip_y_msg);
         l_hip_r_pub.publish(l_hip_r_msg);
@@ -150,12 +150,12 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
                                           KDL::Vector(x_t, y_t, z_t)), //Check it!!!
                                rleg_des_joint_pos_);
 
-        r_an_r_msg.data =  rleg_des_joint_pos_(5);
-        r_an_p_msg.data =  rleg_des_joint_pos_(4);
-        r_kn_p_msg.data =  rleg_des_joint_pos_(3);
-        r_hip_p_msg.data = rleg_des_joint_pos_(2);
-        r_hip_r_msg.data = rleg_des_joint_pos_(1);
-        r_hip_y_msg.data = rleg_des_joint_pos_(0);
+        r_an_r_msg.data =  rleg_des_joint_pos_(0);
+        r_an_p_msg.data =  rleg_des_joint_pos_(1);
+        r_kn_p_msg.data =  rleg_des_joint_pos_(2);
+        r_hip_p_msg.data = rleg_des_joint_pos_(3);
+        r_hip_r_msg.data = rleg_des_joint_pos_(4);
+        r_hip_y_msg.data = rleg_des_joint_pos_(5);
 
         r_hip_y_pub.publish(r_hip_y_msg);
         r_hip_r_pub.publish(r_hip_r_msg);
@@ -174,12 +174,12 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
                                           KDL::Vector(x_t, y_t, z_t)),
                                lleg_des_joint_pos_);
 
-        l_an_r_msg.data =  lleg_des_joint_pos_(5);
-        l_an_p_msg.data =  lleg_des_joint_pos_(4);
-        l_kn_p_msg.data =  lleg_des_joint_pos_(3);
-        l_hip_p_msg.data = lleg_des_joint_pos_(2);
-        l_hip_r_msg.data = lleg_des_joint_pos_(1);
-        l_hip_y_msg.data = lleg_des_joint_pos_(0);
+        l_an_r_msg.data =  lleg_des_joint_pos_(0);
+        l_an_p_msg.data =  lleg_des_joint_pos_(1);
+        l_kn_p_msg.data =  lleg_des_joint_pos_(2);
+        l_hip_p_msg.data = lleg_des_joint_pos_(3);
+        l_hip_r_msg.data = lleg_des_joint_pos_(4);
+        l_hip_y_msg.data = lleg_des_joint_pos_(5);
 
         l_hip_y_pub.publish(l_hip_y_msg);
         l_hip_r_pub.publish(l_hip_r_msg);
@@ -218,12 +218,12 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
                                           KDL::Vector(x_t, y_t, z_t)), //Check it!!!
                                rleg_des_joint_pos_);
 
-        r_an_r_msg.data =  rleg_des_joint_pos_(5);
-        r_an_p_msg.data =  rleg_des_joint_pos_(4);
-        r_kn_p_msg.data =  rleg_des_joint_pos_(3);
-        r_hip_p_msg.data = rleg_des_joint_pos_(2);
-        r_hip_r_msg.data = rleg_des_joint_pos_(1);
-        r_hip_y_msg.data = rleg_des_joint_pos_(0);
+        r_an_r_msg.data =  rleg_des_joint_pos_(0);
+        r_an_p_msg.data =  rleg_des_joint_pos_(1);
+        r_kn_p_msg.data =  rleg_des_joint_pos_(2);
+        r_hip_p_msg.data = rleg_des_joint_pos_(3);
+        r_hip_r_msg.data = rleg_des_joint_pos_(4);
+        r_hip_y_msg.data = rleg_des_joint_pos_(5);
 
         r_hip_y_pub.publish(r_hip_y_msg);
         r_hip_r_pub.publish(r_hip_r_msg);
@@ -242,12 +242,12 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
                                           KDL::Vector(x_t, y_t, z_t)),
                                lleg_des_joint_pos_);
 
-        l_an_r_msg.data =  lleg_des_joint_pos_(5);
-        l_an_p_msg.data =  lleg_des_joint_pos_(4);
-        l_kn_p_msg.data =  lleg_des_joint_pos_(3);
-        l_hip_p_msg.data = lleg_des_joint_pos_(2);
-        l_hip_r_msg.data = lleg_des_joint_pos_(1);
-        l_hip_y_msg.data = lleg_des_joint_pos_(0);
+        l_an_r_msg.data =  lleg_des_joint_pos_(0);
+        l_an_p_msg.data =  lleg_des_joint_pos_(1);
+        l_kn_p_msg.data =  lleg_des_joint_pos_(2);
+        l_hip_p_msg.data = lleg_des_joint_pos_(3);
+        l_hip_r_msg.data = lleg_des_joint_pos_(4);
+        l_hip_y_msg.data = lleg_des_joint_pos_(5);
 
         l_hip_y_pub.publish(l_hip_y_msg);
         l_hip_r_pub.publish(l_hip_r_msg);
@@ -272,15 +272,13 @@ void op3_zmp_locomotion::legSwing(Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::V
     loop_rate.sleep();
   }
 
-  for (int i=0;i<6;i++)
+  for (int i=0;i<JOINT_NUM;i++)
   {
-    //rleg_cur_joint_pos_(i) = rleg_des_joint_pos_((JOINT_NUM-1)-i);
-    //lleg_cur_joint_pos_(i) = lleg_des_joint_pos_((JOINT_NUM-1)-i);
 
-    rleg_cur_joint_pos_(i) = rleg_des_joint_pos_((JOINT_NUM-1)-i);
-    lleg_cur_joint_pos_(i) = lleg_des_joint_pos_((JOINT_NUM-1)-i);
+    rleg_cur_joint_pos_(i) = rleg_des_joint_pos_(i);
+    lleg_cur_joint_pos_(i) = lleg_des_joint_pos_(i);
 
-    lleg_joint_position.data[i] = lleg_cur_joint_pos_(i);
+    //ROS_INFO("%f", lleg_cur_joint_pos_(i)*R2D);
 
   }
 

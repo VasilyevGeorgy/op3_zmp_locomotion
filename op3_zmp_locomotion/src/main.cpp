@@ -31,22 +31,46 @@ int main (int argc, char **argv){
     move_robot.comTranslation(rleg_cur_joint_pos, lleg_cur_joint_pos);
 
     move_robot.legSwing(rleg_cur_joint_pos, lleg_cur_joint_pos);
-
+    //
     //move_robot.init_leg = "right";
-
-    //ROS_INFO("\n\n\nLeft leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f\n\n\n",
-    //         lleg_cur_joint_pos[0]*R2D,lleg_cur_joint_pos[1]*R2D,lleg_cur_joint_pos[2]*R2D,
-    //         lleg_cur_joint_pos[3]*R2D,lleg_cur_joint_pos[4]*R2D,lleg_cur_joint_pos[5]*R2D
-    //         );
-
+    //
     //move_robot.comTranslation(rleg_cur_joint_pos, lleg_cur_joint_pos);
+    //
+    //for (int i=0;i<JOINT_NUM-1;i++)
+    //{
+    //  move_robot.lleg_joint_position.data[i] = -lleg_cur_joint_pos(i);
+    //  ROS_INFO("%f",move_robot.lleg_joint_position.data[i]*R2D);
+    //}
+    //move_robot.lleg_joint_position.data[JOINT_NUM-1] = lleg_cur_joint_pos(JOINT_NUM-1);
+    //ROS_INFO("%f",move_robot.lleg_joint_position.data[JOINT_NUM-1]*R2D);
+    //
+    ////move_robot.moveCOMToLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+    ////                                       KDL::Vector(-0.05, // move_robot.lleg_current_pose.p.x()
+    ////                                                   0.0, // move_robot.lleg_current_pose.p.y()
+    ////                                                   move_robot.pelvis_position_z)),
+    ////                            lleg_cur_joint_pos);
 
-    move_robot.moveCOMToLeftLeg(KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                                           KDL::Vector(0.0, // move_robot.lleg_current_pose.p.x()
-                                                       0.0, // move_robot.lleg_current_pose.p.y()
-                                                       move_robot.pelvis_position_z)),
-                                lleg_cur_joint_pos);
 
+
+    for (int i=0;i<JOINT_NUM;i++)
+    {
+      move_robot.lleg_joint_position.data[i] = lleg_cur_joint_pos(i);
+      ROS_INFO("%f",move_robot.lleg_joint_position.data[i]*R2D);
+    }
+
+    bool kinematics_status;
+    KDL::Frame pos_test;
+    kinematics_status = move_robot.lleg_foot_to_pelvis_fk_solver->JntToCart(move_robot.lleg_joint_position,pos_test); //lleg_foot_to_pelvis_fk_solver
+
+    if(kinematics_status>=0){
+        ROS_INFO("FK\nx: %f; y: %f, z: %f", pos_test.p.x(),pos_test.p.y(),pos_test.p.z());
+    }else{
+        ROS_WARN("FK error!");
+    }
+
+    move_robot.init_leg = "right";
+
+    move_robot.comTranslation(rleg_cur_joint_pos, lleg_cur_joint_pos);
 
 
     return 0;

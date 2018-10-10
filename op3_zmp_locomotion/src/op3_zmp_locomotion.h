@@ -61,7 +61,7 @@ public:
   bool walk(int step_num);
 
   bool setInitPose(KDL::Frame pelvis_des_pose, Eigen::VectorXd &rleg_cur_joint_pos_, Eigen::VectorXd &lleg_cur_joint_pos_);
-  void move_pelvis(KDL::Frame &pelvis_des_pose, double &pelvis_current_position, Eigen::VectorXd &rleg_des_joint_pos_, Eigen::VectorXd &lleg_des_joint_pos_);
+  void move_pelvis(Eigen::VectorXd &rleg_des_joint_pos_, Eigen::VectorXd &lleg_des_joint_pos_);
 
   bool moveLeftLeg(KDL::Frame lleg_des_pose, Eigen::VectorXd &lleg_des_joint_pos_);
   bool moveCOMToLeftLeg(KDL::Frame pelvis_des_pose, Eigen::VectorXd &lleg_des_joint_pos_);
@@ -84,6 +84,52 @@ public:
   KDL::Frame pelvis_current_pose;
   KDL::Frame pelvis_desired_pose;
 
+  //Joint limits
+  //Right leg
+    KDL::JntArray rleg_foot_to_pelvis_min_position_limit;
+    KDL::JntArray rleg_foot_to_pelvis_max_position_limit;
+    KDL::JntArray rleg_pelvis_to_foot_min_position_limit;
+    KDL::JntArray rleg_pelvis_to_foot_max_position_limit;
+  //Left leg
+    KDL::JntArray lleg_foot_to_pelvis_min_position_limit;
+    KDL::JntArray lleg_foot_to_pelvis_max_position_limit;
+    KDL::JntArray lleg_pelvis_to_foot_min_position_limit;
+    KDL::JntArray lleg_pelvis_to_foot_max_position_limit;
+
+  //Right leg chains and solvers
+    KDL::Chain rleg_pelvis_to_foot_chain;
+    KDL::Chain rleg_foot_to_pelvis_chain;
+  //Pelvis->foot solvers for leg swing
+    KDL::ChainFkSolverPos_recursive *rleg_pelvis_to_foot_fk_solver;
+    KDL::ChainIkSolverVel_pinv      *rleg_pelvis_to_foot_ik_vel_solver;
+    KDL::ChainIkSolverPos_NR_JL     *rleg_pelvis_to_foot_ik_pos_solver;
+  //Foot->pelvis solvers for COM translation
+    KDL::ChainFkSolverPos_recursive *rleg_foot_to_pelvis_fk_solver;
+    KDL::ChainIkSolverVel_pinv      *rleg_foot_to_pelvis_ik_vel_solver;
+    KDL::ChainIkSolverPos_NR_JL     *rleg_foot_to_pelvis_ik_pos_solver;
+
+
+  //Left leg chains and solvers
+    KDL::Chain lleg_pelvis_to_foot_chain;
+    KDL::Chain lleg_foot_to_pelvis_chain;
+  //Pelvis->foot solvers for leg swing
+    KDL::ChainFkSolverPos_recursive *lleg_pelvis_to_foot_fk_solver;
+    KDL::ChainIkSolverVel_pinv      *lleg_pelvis_to_foot_ik_vel_solver;
+    KDL::ChainIkSolverPos_NR_JL     *lleg_pelvis_to_foot_ik_pos_solver;
+    //KDL::ChainIkSolverPos_LMA *lleg_pelvis_to_foot_ik_pos_solver;
+  //Foot->pelvis solvers for COM translation
+    KDL::ChainFkSolverPos_recursive *lleg_foot_to_pelvis_fk_solver;
+    KDL::ChainIkSolverVel_pinv      *lleg_foot_to_pelvis_ik_vel_solver;
+    KDL::ChainIkSolverPos_NR_JL     *lleg_foot_to_pelvis_ik_pos_solver;
+
+  //IK
+    Eigen::VectorXd rleg_joint_position_, lleg_joint_position_;
+
+    KDL::JntArray rleg_des_joint_pos;
+    KDL::JntArray lleg_des_joint_pos;
+
+    bool init_com_transl;
+
 
 private:
   ros::NodeHandle node;
@@ -104,49 +150,7 @@ private:
   void r_an_p_callback(const std_msgs::Float64::ConstPtr &angle);
   void r_an_r_callback(const std_msgs::Float64::ConstPtr &angle);
 
-//Joint limits
-//Right leg
-  KDL::JntArray rleg_foot_to_pelvis_min_position_limit;
-  KDL::JntArray rleg_foot_to_pelvis_max_position_limit;
-  KDL::JntArray rleg_pelvis_to_foot_min_position_limit;
-  KDL::JntArray rleg_pelvis_to_foot_max_position_limit;
-//Left leg
-  KDL::JntArray lleg_foot_to_pelvis_min_position_limit;
-  KDL::JntArray lleg_foot_to_pelvis_max_position_limit;
-  KDL::JntArray lleg_pelvis_to_foot_min_position_limit;
-  KDL::JntArray lleg_pelvis_to_foot_max_position_limit;
 
-//Right leg chains and solvers
-  KDL::Chain rleg_pelvis_to_foot_chain;
-  KDL::Chain rleg_foot_to_pelvis_chain;
-//Pelvis->foot solvers for leg swing
-  KDL::ChainFkSolverPos_recursive *rleg_pelvis_to_foot_fk_solver;
-  KDL::ChainIkSolverVel_pinv      *rleg_pelvis_to_foot_ik_vel_solver;
-  KDL::ChainIkSolverPos_NR_JL     *rleg_pelvis_to_foot_ik_pos_solver;
-//Foot->pelvis solvers for COM translation
-  KDL::ChainFkSolverPos_recursive *rleg_foot_to_pelvis_fk_solver;
-  KDL::ChainIkSolverVel_pinv      *rleg_foot_to_pelvis_ik_vel_solver;
-  KDL::ChainIkSolverPos_NR_JL     *rleg_foot_to_pelvis_ik_pos_solver;
-
-
-//Left leg chains and solvers
-  KDL::Chain lleg_pelvis_to_foot_chain;
-  KDL::Chain lleg_foot_to_pelvis_chain;
-//Pelvis->foot solvers for leg swing
-  KDL::ChainFkSolverPos_recursive *lleg_pelvis_to_foot_fk_solver;
-  KDL::ChainIkSolverVel_pinv      *lleg_pelvis_to_foot_ik_vel_solver;
-  KDL::ChainIkSolverPos_NR_JL     *lleg_pelvis_to_foot_ik_pos_solver;
-  //KDL::ChainIkSolverPos_LMA *lleg_pelvis_to_foot_ik_pos_solver;
-//Foot->pelvis solvers for COM translation
-  KDL::ChainFkSolverPos_recursive *lleg_foot_to_pelvis_fk_solver;
-  KDL::ChainIkSolverVel_pinv      *lleg_foot_to_pelvis_ik_vel_solver;
-  KDL::ChainIkSolverPos_NR_JL     *lleg_foot_to_pelvis_ik_pos_solver;
-
-//IK
-  Eigen::VectorXd rleg_joint_position_, lleg_joint_position_;
-
-  KDL::JntArray rleg_des_joint_pos;
-  KDL::JntArray lleg_des_joint_pos;
 
 //cur_leg
   bool cur_leg_is_right;

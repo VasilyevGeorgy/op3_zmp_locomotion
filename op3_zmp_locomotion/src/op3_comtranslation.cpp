@@ -15,7 +15,7 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
   rleg_des_joint_pos_.resize(JOINT_NUM);
   lleg_des_joint_pos_.resize(JOINT_NUM);
 
-  for (int i=0;i<6;i++)
+  for (int i=0;i<JOINT_NUM;i++)
   {
     rleg_joint_pos_(i) = rleg_cur_joint_pos_(i);
     lleg_joint_pos_(i) = lleg_cur_joint_pos_(i);
@@ -26,19 +26,47 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
 
   this->setJointPosition(rleg_joint_pos_,lleg_joint_pos_);
 
+  bool kinematics_status;
+  //KDL::Frame pos_test;
+
+  if (this->init_leg == "right" || this->init_leg == "right")
+    kinematics_status = this->lleg_foot_to_pelvis_fk_solver->JntToCart(lleg_joint_position,pelvis_current_pose); // pos_test
+  else{
+    if (this->init_leg == "left" || this->init_leg == "Left")
+      kinematics_status = this->rleg_foot_to_pelvis_fk_solver->JntToCart(rleg_joint_position,pelvis_current_pose); // pos_test
+    else{
+      ROS_ERROR("\ninit_leg ERROR!");
+      return;
+    }
+  }
+
+  if(kinematics_status>=0){
+      ROS_INFO("FK\nx: %f; y: %f, z: %f", pelvis_current_pose.p.x(),pelvis_current_pose.p.y(),pelvis_current_pose.p.z());
+  }else{
+      ROS_WARN("FK error!");
+  }
+
+
+
+
 //Move COM
 
   ROS_INFO("\nStart to move COM");
 
-  ROS_INFO("\n\n\nLeft leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f\n\n\n",
-           lleg_joint_position.data(0)*R2D,lleg_joint_position.data(1)*R2D,lleg_joint_position.data(2)*R2D,
-           lleg_joint_position.data(3)*R2D,lleg_joint_position.data(4)*R2D,lleg_joint_position.data(5)*R2D
-           );
+  //ROS_INFO("\n\n\nLeft leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f\n\n\n",
+  //         lleg_joint_position.data(0)*R2D,lleg_joint_position.data(1)*R2D,lleg_joint_position.data(2)*R2D,
+  //         lleg_joint_position.data(3)*R2D,lleg_joint_position.data(4)*R2D,lleg_joint_position.data(5)*R2D
+  //         );
+  //
 
-  ROS_INFO("lleg_current_pose_x: %f; lleg_current_pose_y: %f", lleg_current_pose.p.x(), lleg_current_pose.p.y());
+  //rleg_current_pose.p.data[1] -= 0.035;
+  //lleg_current_pose.p.data[1] += 0.035;
 
-  double pelvis_current_position_x = 0.0;
-  double pelvis_current_position_y = pelvis_current_pose.p.y(); // pelvis_current_pose.p.y();
+  //ROS_INFO("rleg_current_pose_x: %f; rleg_current_pose_y: %f", rleg_current_pose.p.x(), rleg_current_pose.p.y());
+  //ROS_INFO("lleg_current_pose_x: %f; lleg_current_pose_y: %f", lleg_current_pose.p.x(), lleg_current_pose.p.y());
+
+  double pelvis_current_position_x = pelvis_current_pose.p.x();
+  double pelvis_current_position_y = pelvis_current_pose.p.y();
 
   ros::Rate loop_rate(40);
 
@@ -48,15 +76,26 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
 
       //ROS_INFO("%s", this->init_leg.c_str());
 
-      while(pelvis_current_position_y < lleg_current_pose.p.y() && pelvis_current_position_x < lleg_current_pose.p.x()){
+     if (init_com_transl){
+       lleg_current_pose.p.data[1] -= 0.035;
+       init_com_transl = false;
+     }
+     else
+       lleg_current_pose.p.data[1] = 0.0;
 
-            pelvis_current_position_x += step;
-            pelvis_current_position_y += step;
+     ROS_INFO("lleg_current_pose_x: %f; lleg_current_pose_y: %f", lleg_current_pose.p.x(), lleg_current_pose.p.y());
 
-            ROS_INFO("Left leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f\n",
-                     lleg_des_joint_pos_(0)*R2D,lleg_des_joint_pos_(1)*R2D,lleg_des_joint_pos_(2)*R2D,
-                     lleg_des_joint_pos_(3)*R2D,lleg_des_joint_pos_(4)*R2D,lleg_des_joint_pos_(5)*R2D
-                     );
+      while(pelvis_current_position_y > lleg_current_pose.p.y() && pelvis_current_position_x >= 0.0){
+
+            pelvis_current_position_y -= step;
+
+            if (pelvis_current_position_x > 0.0) // pelvis_current_position_x > lleg_current_pose.p.x()
+                pelvis_current_position_x -= step;                   //
+
+            //ROS_INFO("Left leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f\n",
+            //         lleg_des_joint_pos_(0)*R2D,lleg_des_joint_pos_(1)*R2D,lleg_des_joint_pos_(2)*R2D,
+            //         lleg_des_joint_pos_(3)*R2D,lleg_des_joint_pos_(4)*R2D,lleg_des_joint_pos_(5)*R2D
+            //         );
 
 
             this->moveCOMToLeftLeg(KDL::Frame(pelvis_desired_pose.M,
@@ -65,10 +104,10 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
                                                            this->pelvis_position_z)),
                                    lleg_des_joint_pos_);
 
-            ROS_INFO("Left leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f\n",
-                     lleg_des_joint_pos_(0)*R2D,lleg_des_joint_pos_(1)*R2D,lleg_des_joint_pos_(2)*R2D,
-                     lleg_des_joint_pos_(3)*R2D,lleg_des_joint_pos_(4)*R2D,lleg_des_joint_pos_(5)*R2D
-                     );
+            //ROS_INFO("Left leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f\n",
+            //         lleg_des_joint_pos_(0)*R2D,lleg_des_joint_pos_(1)*R2D,lleg_des_joint_pos_(2)*R2D,
+            //         lleg_des_joint_pos_(3)*R2D,lleg_des_joint_pos_(4)*R2D,lleg_des_joint_pos_(5)*R2D
+            //         );
 
 
             l_an_r_msg.data =  lleg_des_joint_pos_(0);
@@ -87,6 +126,8 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
             l_an_p_pub.publish(l_an_p_msg);
             l_an_r_pub.publish(l_an_r_msg);
 
+            ROS_INFO("pelvis_current_position_x: %f",pelvis_current_position_x);
+
             ros::spinOnce();
             loop_rate.sleep();
 
@@ -95,25 +136,35 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
   else{
     if (this->init_leg == "left" || this->init_leg == "Left"){
 
-      while(pelvis_current_position_y > rleg_current_pose.p.y()){
+      if (init_com_transl){
+        rleg_current_pose.p.data[1] = 0.035;
+        init_com_transl = false;
+      }
+      else
+        rleg_current_pose.p.data[1] = 0.0;
 
-            pelvis_current_position_y -= step;
+      ROS_INFO("rleg_current_pose_x: %f; rleg_current_pose_y: %f", rleg_current_pose.p.x(), rleg_current_pose.p.y());
+
+      while(pelvis_current_position_y < rleg_current_pose.p.y() && pelvis_current_position_x >= 0.0){
+
+            pelvis_current_position_y += step;
+
+            if (pelvis_current_position_x > 0.0) // lleg_current_pose.p.x()
+              pelvis_current_position_x -= step;
 
             this->moveCOMToRightLeg(KDL::Frame(pelvis_desired_pose.M,
-                                              KDL::Vector(rleg_current_pose.p.x(),
+                                              KDL::Vector(pelvis_current_position_x,
                                                            pelvis_current_position_y,
                                                            this->pelvis_position_z)),
                                    rleg_des_joint_pos_);
 
 
-            r_an_r_msg.data =  -rleg_des_joint_pos_(0);
-            //ankle_roll = -rleg_des_joint_pos_(0);
-            r_an_p_msg.data =  -rleg_des_joint_pos_(1);
-            r_kn_p_msg.data =  -rleg_des_joint_pos_(2);
-            r_hip_p_msg.data = -rleg_des_joint_pos_(3);
-            r_hip_r_msg.data = -rleg_des_joint_pos_(4);
-            //hip_roll = -rleg_des_joint_pos_(4);
-            r_hip_y_msg.data =  rleg_des_joint_pos_(5);
+            r_an_r_msg.data  = rleg_des_joint_pos_(0);
+            r_an_p_msg.data  = rleg_des_joint_pos_(1);
+            r_kn_p_msg.data  = rleg_des_joint_pos_(2);
+            r_hip_p_msg.data = rleg_des_joint_pos_(3);
+            r_hip_r_msg.data = rleg_des_joint_pos_(4);
+            r_hip_y_msg.data = rleg_des_joint_pos_(5);
 
             r_hip_y_pub.publish(r_hip_y_msg);
             r_hip_r_pub.publish(r_hip_r_msg);
@@ -122,6 +173,7 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
             r_an_p_pub.publish(r_an_p_msg);
             r_an_r_pub.publish(r_an_r_msg);
 
+            ROS_INFO("pelvis_current_position_x: %f",pelvis_current_position_x);
 
             ros::spinOnce();
             loop_rate.sleep();
@@ -132,7 +184,7 @@ void op3_zmp_locomotion::comTranslation(Eigen::VectorXd &rleg_cur_joint_pos_, Ei
       ROS_INFO("Please choose initial swing leg properly!");
   }
 
-  for (int i=0;i<6;i++)
+  for (int i=0;i<JOINT_NUM;i++)
   {
     rleg_cur_joint_pos_(i) = rleg_des_joint_pos_(i);
     lleg_cur_joint_pos_(i) = lleg_des_joint_pos_(i);

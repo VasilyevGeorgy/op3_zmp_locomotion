@@ -38,6 +38,8 @@ op3_zmp_locomotion::op3_zmp_locomotion(){
   //cur_r_hip_y = cur_r_hip_y_.data;
   //ROS_INFO("\n\n\n %f \n\n\n", cur_r_hip_y);
 
+  init_com_transl = true;
+
 
 }
 
@@ -116,8 +118,8 @@ void op3_zmp_locomotion::initialize(KDL::Frame pelvis_pose, KDL::Frame rfoot_pos
   std::vector<double> rleg_foot_to_pelvis_min_position_limit_, rleg_foot_to_pelvis_max_position_limit_;
   rleg_foot_to_pelvis_min_position_limit_.push_back(-90.0); rleg_foot_to_pelvis_max_position_limit_.push_back(90.0); // an_r
   rleg_foot_to_pelvis_min_position_limit_.push_back(-90.0);	rleg_foot_to_pelvis_max_position_limit_.push_back(90.0); // an_p
-  rleg_foot_to_pelvis_min_position_limit_.push_back(-0.01); rleg_foot_to_pelvis_max_position_limit_.push_back(180.0); // kn_p
-  rleg_foot_to_pelvis_min_position_limit_.push_back(-180.0);	rleg_foot_to_pelvis_max_position_limit_.push_back(10.0); // hip_p
+  rleg_foot_to_pelvis_min_position_limit_.push_back(-180.0); rleg_foot_to_pelvis_max_position_limit_.push_back(-0.01); // kn_p
+  rleg_foot_to_pelvis_min_position_limit_.push_back(-10.0);	rleg_foot_to_pelvis_max_position_limit_.push_back(180.0); // hip_p
   rleg_foot_to_pelvis_min_position_limit_.push_back(-90.0);	rleg_foot_to_pelvis_max_position_limit_.push_back(90.0); // hip_r
   rleg_foot_to_pelvis_min_position_limit_.push_back(-90.0); rleg_foot_to_pelvis_max_position_limit_.push_back(90.0); // hip_y
 
@@ -293,11 +295,11 @@ bool op3_zmp_locomotion::moveRightLeg(KDL::Frame rleg_des_pose, Eigen::VectorXd 
   }
   else {
     for (int i=0; i<JOINT_NUM;i++){
-        rleg_des_joint_pos_(i) = rleg_des_joint_pos(i);
+        rleg_des_joint_pos_(i) = rleg_des_joint_pos(JOINT_NUM-1-i);
     }
     ROS_INFO("Right leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f",
-             rleg_des_joint_pos_[5]*R2D,rleg_des_joint_pos_[4]*R2D,rleg_des_joint_pos_[3]*R2D,
-             rleg_des_joint_pos_[2]*R2D,rleg_des_joint_pos_[1]*R2D,rleg_des_joint_pos_[0]*R2D
+             rleg_des_joint_pos_[0]*R2D,rleg_des_joint_pos_[1]*R2D,rleg_des_joint_pos_[2]*R2D,
+             rleg_des_joint_pos_[3]*R2D,rleg_des_joint_pos_[4]*R2D,rleg_des_joint_pos_[5]*R2D
              );
   }
 
@@ -319,12 +321,12 @@ bool op3_zmp_locomotion::moveLeftLeg(KDL::Frame lleg_des_pose, Eigen::VectorXd &
   }
   else {
     for (int i=0; i<JOINT_NUM;i++){
-        lleg_des_joint_pos_(i) = lleg_joint_position(i);
-        lleg_des_joint_pos_(i) = lleg_des_joint_pos(i);
+        //lleg_des_joint_pos_(i) = lleg_joint_position(i);
+        lleg_des_joint_pos_(i) = lleg_des_joint_pos(JOINT_NUM-1-i);
     }
     ROS_INFO("Left leg (deg) an_r:%f, an_p:%f, kn_p:%f, hip_p:%f, hip_r:%f, hip_yaw:%f",
-             lleg_des_joint_pos_[5]*R2D,lleg_des_joint_pos_[4]*R2D,lleg_des_joint_pos_[3]*R2D,
-             lleg_des_joint_pos_[2]*R2D,lleg_des_joint_pos_[1]*R2D,lleg_des_joint_pos_[0]*R2D
+             lleg_des_joint_pos_[0]*R2D,lleg_des_joint_pos_[1]*R2D,lleg_des_joint_pos_[2]*R2D,
+             lleg_des_joint_pos_[3]*R2D,lleg_des_joint_pos_[4]*R2D,lleg_des_joint_pos_[5]*R2D
              );
   }
 
