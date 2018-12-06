@@ -1,6 +1,7 @@
 #ifndef OP3_ZMP_INV_KIN_H
 #define OP3_ZMP_INV_KIN_H
 
+#include <stdlib.h>
 #include <string>
 #include <cmath>
 #include <stdint.h>
@@ -14,6 +15,7 @@
 #include <ros/package.h>
 #include <geometry_msgs/Pose.h>
 #include "std_msgs/Float64.h"
+#include "sensor_msgs/JointState.h"
 
 #include <eigen3/Eigen/Eigen>
 
@@ -26,6 +28,14 @@
 #include <kdl/frames.hpp>
 #include <kdl/chainiksolverpos_lma.hpp>
 
+#define RUNMNGRSCRIPT "\
+#!/bin/bash \n\
+gnome-terminal -e \"roslaunch op3_manager op3_gazebo.launch\" \
+"
+
+//<node name="foo" pkg="bar" type="bar_node" output="screen" launch-prefix="xterm -e" />
+//roslaunch op3_manager op3_gazebo.launch\
+//gnome-terminal -e "roslaunch op3_gazebo robotis_world.launch"
 
 const int JOINT_NUM = 6;
 const double D2R = M_PI/180.0;
@@ -45,7 +55,7 @@ public:
   void goToInitialPose(KDL::Frame pelvis_des_pose);
 
 private:
-  //Positions
+  //Pose
   KDL::Frame pelvis_pose;
   KDL::Frame rfoot_pose;
   KDL::Frame lfoot_pose;
@@ -53,6 +63,9 @@ private:
   //Joint arrays
   KDL::JntArray rleg_joint_pos;
   KDL::JntArray lleg_joint_pos;
+
+  Eigen::VectorXd all_joints; //!!!!!
+
   //IK
   KDL::JntArray rleg_des_joint_pos;
   KDL::JntArray lleg_des_joint_pos;
@@ -92,6 +105,13 @@ private:
   ros::Subscriber l_kn_p_sub;
   ros::Subscriber l_an_p_sub;
   ros::Subscriber l_an_r_sub;
+
+  ros::Subscriber present_joint_states_sub;
+  void pres_state_callback(const sensor_msgs::JointState::ConstPtr &jnt_data);
+  void get_joints_pos();
+  bool getCallback;
+
+
   //Joint Publishers
   //Right leg
   ros::Publisher r_hip_y_pub;

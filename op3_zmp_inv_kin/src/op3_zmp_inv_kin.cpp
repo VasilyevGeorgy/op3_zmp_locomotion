@@ -11,7 +11,6 @@ op3_zmp_inv_kin::op3_zmp_inv_kin()
   lleg_min_pos_limit.resize(JOINT_NUM);
   lleg_max_pos_limit.resize(JOINT_NUM);
 
-
   for (int i=0; i < JOINT_NUM; i++){
     rleg_joint_pos(i) = 0.0;
     lleg_joint_pos(i) = 0.0;
@@ -21,9 +20,15 @@ op3_zmp_inv_kin::op3_zmp_inv_kin()
 
     lleg_min_pos_limit(i) = 0.0;
     lleg_max_pos_limit(i) = 0.0;
-
-
   }
+
+  all_joints.resize(20);
+
+  for(int i=0;i<20;i++){
+    all_joints(i) = 0.0;
+  }
+
+  getCallback = true;
 
 }
 
@@ -55,9 +60,51 @@ void op3_zmp_inv_kin::initializeROS(){
   l_an_p_pub = node.advertise<std_msgs::Float64>("robotis_op3/l_ank_pitch_position/command",10);
   l_an_r_pub = node.advertise<std_msgs::Float64>("robotis_op3/l_ank_roll_position/command",10);
 
-  //std_msgs::Float64 cur_r_hip_y_ = *(ros::topic::waitForMessage<std_msgs::Float64>("robotis_op3/r_hip_yaw_position/command"));
-  //cur_r_hip_y = cur_r_hip_y_.data;
-  //ROS_INFO("\n\n\n %f \n\n\n", cur_r_hip_y);
+  //present_joint_states_sub = node.subscribe("/robotis/present_joint_states",1000, &op3_zmp_inv_kin::pres_state_callback, this);
+  //ROS_INFO("CALLBACK TEST 0!");
+
+}
+
+void op3_zmp_inv_kin::get_joints_pos(){
+  present_joint_states_sub = node.subscribe("/robotis/present_joint_states",1000, &op3_zmp_inv_kin::pres_state_callback, this);
+  ROS_INFO("CALLBACK TEST 0!");
+}
+
+void op3_zmp_inv_kin::pres_state_callback(const sensor_msgs::JointState::ConstPtr &jnt_data)
+{
+  //ROS_INFO("CALLBACK TEST 1!");
+  //for (int i=0;i<20;i++){
+  //  all_joints(i) = jnt_data->position[i];
+  //}
+  //
+  //for (int i=0;i<20;i++){
+  //  std::cout<<all_joints(i)<<" ";
+  //}
+  //std::cout<<std::endl;
+
+  rleg_joint_pos(0) = all_joints(16); // r_hip_yaw
+  rleg_joint_pos(1) = all_joints(15); // r_hip_roll
+  rleg_joint_pos(2) = all_joints(14); // r_hip_pitch
+  rleg_joint_pos(3) = all_joints(17); // r_knee
+  rleg_joint_pos(4) = all_joints(11); // r_ank_pitch
+  rleg_joint_pos(5) = all_joints(12); // r_ank_roll
+
+  lleg_joint_pos(0) = all_joints(7);  // l_hip_yaw
+  lleg_joint_pos(1) = all_joints(6);  // l_hip_roll
+  lleg_joint_pos(2) = all_joints(5);  // l_hip_pitch
+  lleg_joint_pos(3) = all_joints(8);  // l_knee
+  lleg_joint_pos(4) = all_joints(2);  // l_ank_pitch
+  lleg_joint_pos(5) = all_joints(3);  // l_ank_roll
+
+
+  getCallback = false;
+
+  //present_joint_states_sub.shutdown();
+
+  //cur_r_hip_y = angles->data;
+  //ROS_INFO("!-!%f", angles->data);
+  //ROS_INFO("!!!%f", cur_r_hip_y);
+  //r_hip_y_sub.shutdown();
 }
 
 void op3_zmp_inv_kin::publishMessageROS(Eigen::VectorXd rleg_jnt_angle_, Eigen::VectorXd lleg_jnt_angle_){
@@ -245,6 +292,25 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose){
   //Initialization
   this->initialization(pelvis_pose);
 
+  this->initializeROS();
+  this->get_joints_pos();
+
+  ROS_INFO("Test2!");
+
+  while (getCallback){
+    ros::spinOnce();
+  }
+  getCallback = true;
+
+  KDL::Frame frame1;
+
+
+
+ // rleg_fk_solver->JntToCart()
+
+
+
+/*
 
   rfoot_pose = KDL::Frame(KDL::Rotation::RPY(0.0,0.0,0.0),
                           KDL::Vector(0.0,-y_offset,0.0)
@@ -283,9 +349,9 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose){
 
   double dz = (pelvis_des_pose.p.z()-pelvis_pose.p.z())/numOfSteps;
 
-  std::cout<<"pelvis_des_pose.p.z() = "<<pelvis_des_pose.p.z()<<std::endl;
-  std::cout<<"pelvis_pose.p.z() = "<<pelvis_pose.p.z()<<std::endl;
-  std::cout<<"dz = "<<dz<<std::endl;
+  //std::cout<<"pelvis_des_pose.p.z() = "<<pelvis_des_pose.p.z()<<std::endl;
+  //std::cout<<"pelvis_pose.p.z() = "<<pelvis_pose.p.z()<<std::endl;
+  //std::cout<<"dz = "<<dz<<std::endl;
 
   this->initializeROS();
 
@@ -307,8 +373,9 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose){
     rate.sleep();
   }
 
+*/
 
 
-  ROS_INFO("Test2!");
+  ROS_INFO("Test3!");
 
 }
