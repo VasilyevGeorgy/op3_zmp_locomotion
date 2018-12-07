@@ -82,29 +82,38 @@ void op3_zmp_inv_kin::pres_state_callback(const sensor_msgs::JointState::ConstPt
   //}
   //std::cout<<std::endl;
 
-  rleg_joint_pos(0) = all_joints(16); // r_hip_yaw
-  rleg_joint_pos(1) = all_joints(15); // r_hip_roll
-  rleg_joint_pos(2) = all_joints(14); // r_hip_pitch
-  rleg_joint_pos(3) = all_joints(17); // r_knee
-  rleg_joint_pos(4) = all_joints(11); // r_ank_pitch
-  rleg_joint_pos(5) = all_joints(12); // r_ank_roll
+  ROS_INFO("Right leg (deg) hip_yaw:%f, hip_r:%f, hip_p:%f, kn_p:%f, an_p :%f, an_r:%f",
+           jnt_data->position[16]*R2D,jnt_data->position[15]*R2D,jnt_data->position[14]*R2D,
+           jnt_data->position[17]*R2D,jnt_data->position[11]*R2D,jnt_data->position[12]*R2D
+           );
 
-  lleg_joint_pos(0) = all_joints(7);  // l_hip_yaw
-  lleg_joint_pos(1) = all_joints(6);  // l_hip_roll
-  lleg_joint_pos(2) = all_joints(5);  // l_hip_pitch
-  lleg_joint_pos(3) = all_joints(8);  // l_knee
-  lleg_joint_pos(4) = all_joints(2);  // l_ank_pitch
-  lleg_joint_pos(5) = all_joints(3);  // l_ank_roll
+  ROS_INFO("Left leg (deg) hip_yaw:%f, hip_r:%f, hip_p:%f, kn_p:%f, an_p :%f, an_r:%f",
+           jnt_data->position[7]*R2D,jnt_data->position[6]*R2D,jnt_data->position[5]*R2D,
+           jnt_data->position[8]*R2D,jnt_data->position[2]*R2D,jnt_data->position[3]*R2D
+           );
+
+  rleg_joint_pos(0) = jnt_data->position[16]; // r_hip_yaw
+  rleg_joint_pos(1) = jnt_data->position[15]; // r_hip_roll
+  rleg_joint_pos(2) = jnt_data->position[14]; // r_hip_pitch
+  rleg_joint_pos(3) = jnt_data->position[17]; // r_knee
+  rleg_joint_pos(4) = jnt_data->position[11]; // r_ank_pitch
+  rleg_joint_pos(5) = jnt_data->position[12]; // r_ank_roll
+
+  lleg_joint_pos(0) = jnt_data->position[7];  // l_hip_yaw
+  lleg_joint_pos(1) = jnt_data->position[6];  // l_hip_roll
+  lleg_joint_pos(2) = jnt_data->position[5];  // l_hip_pitch
+  lleg_joint_pos(3) = jnt_data->position[8];  // l_knee
+  lleg_joint_pos(4) = jnt_data->position[2];  // l_ank_pitch
+  lleg_joint_pos(5) = jnt_data->position[3];  // l_ank_roll
 
 
   getCallback = false;
 
+  ROS_INFO("CALLBACK TEST 1!");
+
+
   //present_joint_states_sub.shutdown();
 
-  //cur_r_hip_y = angles->data;
-  //ROS_INFO("!-!%f", angles->data);
-  //ROS_INFO("!!!%f", cur_r_hip_y);
-  //r_hip_y_sub.shutdown();
 }
 
 void op3_zmp_inv_kin::publishMessageROS(Eigen::VectorXd rleg_jnt_angle_, Eigen::VectorXd lleg_jnt_angle_){
@@ -293,6 +302,7 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose){
   this->initialization(pelvis_pose);
 
   this->initializeROS();
+
   this->get_joints_pos();
 
   ROS_INFO("Test2!");
@@ -302,11 +312,59 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose){
   }
   getCallback = true;
 
-  KDL::Frame frame1;
+  KDL::Frame frm;
 
+  rleg_fk_solver->JntToCart(rleg_joint_pos, frm);
 
+  double fk_r = 0.0;
+  double fk_p = 0.0;
+  double fk_y = 0.0;
 
- // rleg_fk_solver->JntToCart()
+  frm.M.GetRPY(fk_r,fk_p,fk_y);
+
+  KDL::Frame frm1 = KDL::Frame(KDL::Rotation::RPY(-fk_r, -fk_p, -fk_y),
+                          KDL::Vector(pelvis_pose.p.x()-frm.p.x(),
+                                      pelvis_pose.p.y()-frm.p.y()-y_offset,
+                                      pelvis_pose.p.z()-frm.p.z())
+                              );
+
+  ROS_INFO("FK x: %f, y: %f, z: %f", frm.p.x(), frm.p.y(), frm.p.z());
+  ROS_INFO("Pelvis x: %f, y: %f, z: %f", frm1.p.x(), frm1.p.y(), frm1.p.z());
+
+//  for (int i=0; i<6; i++){
+//    ROS_INFO("Joint %d: %f", i, rleg_joint_pos(i));
+//  }
+//
+//  KDL::Frame t_p1 = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+//                                  KDL::Vector(0.0, -0.035, -0.0907));           //staticJoint pelvis
+//
+//  KDL::Frame t_12 = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, -rleg_joint_pos(0)), //minusRotZ hip
+//                                  KDL::Vector(0.0, 0.0, -0.0285));
+//
+//  KDL::Frame t_23 = KDL::Frame(KDL::Rotation::RPY(-rleg_joint_pos(1), 0.0, 0.0), //minusRotX hip
+//                                  KDL::Vector(0.0, 0.0, 0.0));
+//
+//  KDL::Frame t_34 = KDL::Frame(KDL::Rotation::RPY(0.0, -rleg_joint_pos(2), 0.0), //minusRotY hip
+//                                  KDL::Vector(0.0, 0.0, -0.11));
+//
+//  KDL::Frame t_45 = KDL::Frame(KDL::Rotation::RPY(0.0, -rleg_joint_pos(3), 0.0), //minusRotY knee
+//                                  KDL::Vector(0.0, 0.0, -0.11));
+//
+//  KDL::Frame t_56 = KDL::Frame(KDL::Rotation::RPY(0.0, rleg_joint_pos(4), 0.0), //RotY ankle
+//                                  KDL::Vector(0.0, 0.0, 0.0));
+//
+//  KDL::Frame t_6 =  KDL::Frame(KDL::Rotation::RPY(0.0, rleg_joint_pos(5), 0.0), //RotX ankle
+//                                  KDL::Vector(0.0, 0.0, -0.0305));
+//
+//  KDL::Frame frm1 = t_p1*t_12*t_23*t_34*t_45*t_56*t_6;
+//
+//  KDL::Frame frm1_inv = frm1.Inverse();
+//
+//  KDL::Frame des_frm = frm*frm1_inv;
+//
+//  ROS_INFO("T x: %f, y: %f, z: %f", frm1.p.x(), frm1.p.y(), frm1.p.z());
+//  ROS_INFO("T des x: %f, y: %f, z: %f", des_frm.p.x(), des_frm.p.y(), des_frm.p.z());
+
 
 
 
