@@ -52,9 +52,24 @@ public:
   op3_zmp_inv_kin();
   virtual ~op3_zmp_inv_kin();
 
-  void goToInitialPose(KDL::Frame pelvis_des_pose);
+  struct stepParam{
+    double step_length; //mm
+    double step_duration; //sec
+    double step_clearance; //mm
+  };
+
+  bool launchManager();
+  void InitPoseTest(KDL::Frame pelvis_des_pose);
+  void goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp);
 
 private:
+  //Step parameters
+
+  double up_part;
+  double down_part;
+  double delta_t_up;
+  double delta_t_down;
+
   //Pose
   KDL::Frame pelvis_pose;
   KDL::Frame rfoot_pose;
@@ -63,8 +78,6 @@ private:
   //Joint arrays
   KDL::JntArray rleg_joint_pos;
   KDL::JntArray lleg_joint_pos;
-
-  Eigen::VectorXd all_joints; //!!!!!
 
   //IK
   KDL::JntArray rleg_des_joint_pos;
@@ -77,8 +90,8 @@ private:
   KDL::JntArray lleg_max_pos_limit;
 
   //Kinematic chains and solvers
-  KDL::Chain rleg_chain;
-  KDL::Chain lleg_chain;
+  KDL::Chain *rleg_chain;
+  KDL::Chain *lleg_chain;
   //Right leg
   KDL::ChainFkSolverPos_recursive *rleg_fk_solver;
   KDL::ChainIkSolverVel_pinv      *rleg_ik_vel_solver;
@@ -127,6 +140,9 @@ private:
   ros::Publisher l_kn_p_pub;
   ros::Publisher l_an_p_pub;
   ros::Publisher l_an_r_pub;
+
+  ros::Publisher leg_joints_pub;
+
   //Messages
   //Right leg
   std_msgs::Float64 r_an_r_msg;
@@ -142,6 +158,9 @@ private:
   std_msgs::Float64 l_hip_p_msg;
   std_msgs::Float64 l_hip_r_msg;
   std_msgs::Float64 l_hip_y_msg;
+
+  void deleteChains();
+  void deleteSolvers();
 
   void initialization(KDL::Frame pelvis_pose);
   void initializeChains(KDL::Frame pelvis_pose);

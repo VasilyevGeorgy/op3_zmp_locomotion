@@ -9,16 +9,21 @@ int main (int argc, char **argv){
 
   ROS_INFO("Test timer 0");
 
-  std::system(RUNMNGRSCRIPT);
-
-  ros::Duration(5.0).sleep();
+  //move.launchManager();
 
   ROS_INFO("Test timer 1");
 
   KDL::Frame goalPose = KDL::Frame(KDL::Rotation::RPY(0.0,0.0,0.0),
-                                   KDL::Vector(0.0,0.0,0.25));
+                                   KDL::Vector(0.0, 0.0, 0.3));
 
-  move.goToInitialPose(goalPose);
+  //move.InitPoseTest(goalPose);
+
+  op3_zmp_inv_kin::stepParam sp;
+  sp.step_length = 10.0;
+  sp.step_duration = 8.0;
+  sp.step_clearance = 5.0;
+
+  move.goToInitialPose(goalPose, sp);
 
   return 0;
 }
