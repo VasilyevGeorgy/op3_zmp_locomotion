@@ -213,6 +213,67 @@ void op3_zmp_inv_kin::setJointPosition(Eigen::VectorXd rleg_joint_position_, Eig
 
 }
 
+bool op3_zmp_inv_kin::moveFoot(KDL::Frame foot_des_pose, Eigen::VectorXd &leg_des_joint_pos_, std::string legType){
+
+  std::transform(legType.begin(),legType.end(),legType.begin(), ::tolower);
+  int ik_error = 0;
+
+  if (legType == "right"){
+
+    KDL::JntArray rleg_des_joint_pos;
+    ik_error = rleg_ik_pos_solver->CartToJnt(rleg_joint_pos, foot_des_pose, rleg_des_joint_pos);
+
+    if (ik_error != 0)
+    {
+      ROS_WARN("RIGHT LEG IK ERROR : %s", rleg_ik_pos_solver->strError(ik_error));
+
+      return false;
+    }
+    else {
+      for (int i=0; i<JOINT_NUM;i++){
+          leg_des_joint_pos_(i) = rleg_des_joint_pos(i);
+      }
+      ROS_INFO("Right leg (deg) hip_yaw:%f, hip_r:%f, hip_p:%f, kn_p:%f, an_p :%f, an_r:%f",
+               leg_des_joint_pos_(0)*R2D,leg_des_joint_pos_(1)*R2D,leg_des_joint_pos_(2)*R2D,
+               leg_des_joint_pos_(3)*R2D,leg_des_joint_pos_(4)*R2D,leg_des_joint_pos_(5)*R2D
+               );
+
+      return true;
+    }
+
+  }
+  else{
+    if (legType == "left"){
+
+      KDL::JntArray lleg_des_joint_pos;
+      ik_error = lleg_ik_pos_solver->CartToJnt(lleg_joint_pos, foot_des_pose, lleg_des_joint_pos);
+
+      if (ik_error != 0)
+      {
+        ROS_WARN("LEFT LEG IK ERROR : %s", lleg_ik_pos_solver->strError(ik_error));
+
+        return false;
+      }
+      else{
+        for (int i=0; i<JOINT_NUM;i++){
+            leg_des_joint_pos_(i) = lleg_des_joint_pos(i);
+        }
+        ROS_INFO("Left leg (deg) hip_yaw:%f, hip_r:%f, hip_p:%f, kn_p:%f, an_p :%f, an_r:%f",
+                 leg_des_joint_pos_(0)*R2D,leg_des_joint_pos_(1)*R2D,leg_des_joint_pos_(2)*R2D,
+                 leg_des_joint_pos_(3)*R2D,leg_des_joint_pos_(4)*R2D,leg_des_joint_pos_(5)*R2D
+                 );
+
+        return true;
+      }
+    }
+    else{
+      ROS_INFO("INCORRECT INPUT FOR LEG TYPE");
+      return false;
+    }
+  }
+
+}
+
 bool op3_zmp_inv_kin::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd &leg_des_joint_pos_, std::string legType){
 
   //leg_des_joint_pos_.resize(JOINT_NUM);
@@ -232,6 +293,8 @@ bool op3_zmp_inv_kin::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd &le
   int ik_pose_err = 0;
 
   if (legType == "right"){
+
+    KDL::JntArray rleg_des_joint_pos;
     pseudo = KDL::Frame(KDL::Rotation::RPY(-roll_,-pitch_,-yaw_),
                            KDL::Vector(rfoot_pose.p.x()-delta_x, rfoot_pose.p.y()-delta_y, rfoot_pose.p.z()-delta_z)
                         );
@@ -252,10 +315,14 @@ bool op3_zmp_inv_kin::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd &le
                leg_des_joint_pos_(0)*R2D,leg_des_joint_pos_(1)*R2D,leg_des_joint_pos_(2)*R2D,
                leg_des_joint_pos_(3)*R2D,leg_des_joint_pos_(4)*R2D,leg_des_joint_pos_(5)*R2D
                );
+
+      return true;
     }
   }
   else{
     if(legType == "left"){
+
+      KDL::JntArray lleg_des_joint_pos;
       pseudo = KDL::Frame(KDL::Rotation::RPY(-roll_,-pitch_,-yaw_),
                              KDL::Vector(lfoot_pose.p.x()-delta_x, lfoot_pose.p.y()-delta_y, lfoot_pose.p.z()-delta_z)
                           );
@@ -276,6 +343,8 @@ bool op3_zmp_inv_kin::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd &le
                  leg_des_joint_pos_(0)*R2D,leg_des_joint_pos_(1)*R2D,leg_des_joint_pos_(2)*R2D,
                  leg_des_joint_pos_(3)*R2D,leg_des_joint_pos_(4)*R2D,leg_des_joint_pos_(5)*R2D
                  );
+
+        return true;
       }
     }
     else{
@@ -284,7 +353,7 @@ bool op3_zmp_inv_kin::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd &le
     }
   }
 
-  std::cout<<"pseudo_z = "<<pseudo.p.z()<<std::endl;
+  //std::cout<<"pseudo_z = "<<pseudo.p.z()<<std::endl;
 
 }
 
@@ -638,7 +707,8 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp){
   int n_down = int (down_part*n_step);
   int n_mid = n_step - (n_up + n_down);
 
-  std::vector<KDL::Frame> foot_poses(n_step);
+  std::vector<KDL::Frame> foot_poses;
+  //foot_poses.resize(n_step);
 
   KDL::Frame cur_frm;
 
@@ -657,7 +727,7 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp){
                            );
 
       foot_poses.push_back(cur_frm);
-      ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
+      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
 
     }
 
@@ -671,7 +741,7 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp){
                            );
 
       foot_poses.push_back(cur_frm);
-      ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
+      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
 
     }
 
@@ -685,11 +755,27 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp){
                            );
 
       foot_poses.push_back(cur_frm);
-      ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
+      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
 
     }
 
+    ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,foot_poses.at(count).p.x(),foot_poses.at(count).p.y(),foot_poses.at(count).p.z());
     //rate.sleep();
+
+  }
+
+
+  for(int i=0; i<n_step; i++){
+
+    this->moveFoot(foot_poses.at(i), lleg_joint_pos_, "Left");
+
+    this->publishMessageROS(rleg_joint_pos_, lleg_joint_pos_);
+    this->setJointPosition(rleg_joint_pos_, lleg_joint_pos_);
+
+    //pelvis_pose = pos;
+
+    rate.sleep();
+
   }
 
 }

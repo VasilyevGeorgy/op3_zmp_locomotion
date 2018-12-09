@@ -79,9 +79,9 @@ private:
   KDL::JntArray rleg_joint_pos;
   KDL::JntArray lleg_joint_pos;
 
-  //IK
-  KDL::JntArray rleg_des_joint_pos;
-  KDL::JntArray lleg_des_joint_pos;
+  ////IK
+  //KDL::JntArray rleg_des_joint_pos;
+  //KDL::JntArray lleg_des_joint_pos;
 
   //Joint limits
   KDL::JntArray rleg_min_pos_limit;
@@ -167,6 +167,7 @@ private:
   void initializeROS();
 
   void setJointPosition(Eigen::VectorXd rleg_joint_position_, Eigen::VectorXd lleg_joint_position_);
+  bool moveFoot(KDL::Frame foot_des_pose, Eigen::VectorXd &leg_des_joint_pos_, std::string legType);
   bool movePelvis(KDL::Frame leg_des_pose, Eigen::VectorXd &leg_des_joint_pos_, std::string legType);
   void publishMessageROS(Eigen::VectorXd rleg_jnt_angle_, Eigen::VectorXd lleg_jnt_angle_);
 

@@ -19,9 +19,9 @@ int main (int argc, char **argv){
   //move.InitPoseTest(goalPose);
 
   op3_zmp_inv_kin::stepParam sp;
-  sp.step_length = 10.0;
-  sp.step_duration = 8.0;
-  sp.step_clearance = 5.0;
+  sp.step_length = 30.0;   //mm
+  sp.step_duration = 8.0;  //sec
+  sp.step_clearance = 15.0; //mm
 
   move.goToInitialPose(goalPose, sp);
 
