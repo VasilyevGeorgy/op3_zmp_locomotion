@@ -357,6 +357,90 @@ bool op3_zmp_inv_kin::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd &le
 
 }
 
+bool op3_zmp_inv_kin::footTrajectoryGeneration(std::vector<KDL::Frame> &foot_poses, stepParam sp, std::string legType){
+
+  int n_step = int (freq*sp.step_duration);
+  up_part = 0.25;
+  down_part = 0.25;
+
+  int n_up = int (up_part*n_step);
+  int n_down = int (down_part*n_step);
+  int n_mid = n_step - (n_up + n_down);
+
+  double y_val = 0.0;
+
+  std::transform(legType.begin(),legType.end(),legType.begin(), ::tolower);
+
+  if(legType == "right"){
+    y_val = -y_offset;
+  }
+  else{
+    if (legType == "left"){
+      y_val = y_offset;
+    }
+    else{
+      ROS_INFO("INCORRECT INPUT FOR LEG TYPE");
+      return false;
+    }
+  }
+
+  KDL::Frame cur_frm;
+
+  double delta_t_up = (M_PI/2)/n_up;
+  double delta_t_down = (M_PI/2)/n_down;
+
+  for(int count=0;count<n_step;count++){
+
+    if(count<=n_up){
+
+      cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+                           KDL::Vector(sp.step_length*up_part*(1-cos(delta_t_up*count))/1000,
+                                       y_val,
+                                       sp.step_clearance*sin(delta_t_up*count)/1000
+                                       )
+                           );
+
+      foot_poses.push_back(cur_frm);
+      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
+
+    }
+
+    if((count>n_up)&&(count<=n_up+n_mid)){
+
+      cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+                           KDL::Vector(sp.step_length/n_step*count/1000,
+                                       y_val,
+                                       sp.step_clearance/1000
+                                       )
+                           );
+
+      foot_poses.push_back(cur_frm);
+      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
+
+    }
+
+    if((count>n_up+n_mid)&&(count<=n_step)){
+
+      cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
+                           KDL::Vector(sp.step_length*down_part*sin(delta_t_down*(count-(n_up+n_mid)))/1000 + sp.step_length/n_step*(n_up+n_mid)/1000,
+                                       y_val,
+                                       sp.step_clearance*cos(delta_t_down*(count-(n_up+n_mid)))/1000
+                                       )
+                           );
+
+      foot_poses.push_back(cur_frm);
+      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
+
+    }
+
+    ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,foot_poses.at(count).p.x(),foot_poses.at(count).p.y(),foot_poses.at(count).p.z());
+
+  }
+
+  return true;
+
+}
+
 void op3_zmp_inv_kin::InitPoseTest(KDL::Frame pelvis_des_pose){
 
   ROS_INFO("Test0!");
@@ -483,7 +567,7 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp){
   ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
   ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
 
-  double freq = 200; // in HZ
+  freq = 200; // in HZ
   ros::Rate rate(freq);
   double time = 5; // in sec
   int numOfSteps = int (freq*time);
@@ -698,72 +782,11 @@ void op3_zmp_inv_kin::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp){
   ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
   ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
 
-  int n_step = int (freq*sp.step_duration);
 
-  up_part = 0.25;
-  down_part = 0.25;
-
-  int n_up = int (up_part*n_step);
-  int n_down = int (down_part*n_step);
-  int n_mid = n_step - (n_up + n_down);
-
+  int n_step = int (freq*sp.step_duration);  
   std::vector<KDL::Frame> foot_poses;
-  //foot_poses.resize(n_step);
 
-  KDL::Frame cur_frm;
-
-  delta_t_up = (M_PI/2)/n_up;
-  delta_t_down = (M_PI/2)/n_down;
-
-  for(int count=0;count<n_step;count++){
-
-    if(count<=n_up){
-
-      cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                           KDL::Vector(sp.step_length*up_part*(1-cos(delta_t_up*count))/1000,
-                                       y_offset,
-                                       sp.step_clearance*sin(delta_t_up*count)/1000
-                                       )
-                           );
-
-      foot_poses.push_back(cur_frm);
-      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
-
-    }
-
-    if((count>n_up)&&(count<=n_up+n_mid)){
-
-      cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                           KDL::Vector(sp.step_length/n_step*count/1000,
-                                       y_offset,
-                                       sp.step_clearance/1000
-                                       )
-                           );
-
-      foot_poses.push_back(cur_frm);
-      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
-
-    }
-
-    if((count>n_up+n_mid)&&(count<=n_step)){
-
-      cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                           KDL::Vector(sp.step_length*down_part*sin(delta_t_down*(count-(n_up+n_mid)))/1000 + sp.step_length/n_step*(n_up+n_mid)/1000,
-                                       y_offset,
-                                       sp.step_clearance*cos(delta_t_down*(count-(n_up+n_mid)))/1000
-                                       )
-                           );
-
-      foot_poses.push_back(cur_frm);
-      //ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,cur_frm.p.x(),cur_frm.p.y(),cur_frm.p.z());
-
-    }
-
-    ROS_INFO("Step #%d x:%f, y:%f, z:%f",count,foot_poses.at(count).p.x(),foot_poses.at(count).p.y(),foot_poses.at(count).p.z());
-    //rate.sleep();
-
-  }
-
+  this->footTrajectoryGeneration(foot_poses, sp, "Left");
 
   for(int i=0; i<n_step; i++){
 
