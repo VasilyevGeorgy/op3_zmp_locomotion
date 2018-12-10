@@ -174,6 +174,7 @@ private:
   bool footTrajectoryGeneration(std::vector<KDL::Frame> &foot_poses, stepParam sp, std::string legType);
   void initCoMTranslation(std::string legType);
   void footTranslation(stepParam sp, std::string legType);
+  void translateCoM(std::string legType);
   void publishMessageROS(Eigen::VectorXd rleg_jnt_angle_, Eigen::VectorXd lleg_jnt_angle_);
 
 

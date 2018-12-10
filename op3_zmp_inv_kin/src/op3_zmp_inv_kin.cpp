@@ -294,7 +294,7 @@ bool op3_zmp_inv_kin::moveFoot(KDL::Frame foot_des_pose, Eigen::VectorXd &leg_de
       }
     }
     else{
-      ROS_INFO("INCORRECT INPUT FOR LEG TYPE");
+      ROS_WARN("moveFoot: INCORRECT LEG INPUT");
       return false;
     }
   }
@@ -375,7 +375,7 @@ bool op3_zmp_inv_kin::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd &le
       }
     }
     else{
-      ROS_WARN("INCORRECT INPUT FOR LEG TYPE");
+      ROS_WARN("movePelvis: INCORRECT LEG INPUT");
       return false;
     }
   }
@@ -394,19 +394,22 @@ bool op3_zmp_inv_kin::footTrajectoryGeneration(std::vector<KDL::Frame> &foot_pos
   int n_down = int (down_part*n_step);
   int n_mid = n_step - (n_up + n_down);
 
+  double x_val = 0.0;
   double y_val = 0.0;
 
   std::transform(legType.begin(),legType.end(),legType.begin(), ::tolower);
 
   if(legType == "right"){
     y_val = -y_offset;
+    x_val = rfoot_pose.p.x();
   }
   else{
     if (legType == "left"){
       y_val = y_offset;
+      x_val = lfoot_pose.p.x();
     }
     else{
-      ROS_INFO("INCORRECT INPUT FOR LEG TYPE");
+      ROS_WARN("footTrajectoryGeneration: INCORRECT LEG INPUT");
       return false;
     }
   }
@@ -646,7 +649,7 @@ void op3_zmp_inv_kin::initCoMTranslation(std::string legType){
       y_val = y_offset;
     }
     else{
-      ROS_INFO("INCORRECT INPUT FOR LEG TYPE");
+      ROS_WARN("initCoMTranslation: INCORRECT LEG INPUT");
       return;
     }
   }
@@ -659,6 +662,9 @@ void op3_zmp_inv_kin::initCoMTranslation(std::string legType){
     return;
   }
 
+  ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
+  ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
+
   Eigen::VectorXd rleg_joint_pos_;
   Eigen::VectorXd lleg_joint_pos_;
 
@@ -666,9 +672,6 @@ void op3_zmp_inv_kin::initCoMTranslation(std::string legType){
 
   rleg_joint_pos_.resize(JOINT_NUM);
   lleg_joint_pos_.resize(JOINT_NUM);
-
-  ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
-  ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
 
   KDL::Frame pos = pelvis_pose;
   KDL::Frame pelvis_des_pose = pelvis_pose;
@@ -705,7 +708,12 @@ void op3_zmp_inv_kin::footTranslation(stepParam sp, std::string legType){
 
   ROS_INFO("Test2!");
 
-  //std::transform(legType.begin(),legType.end(),legType.begin(), ::tolower);
+  std::transform(legType.begin(),legType.end(),legType.begin(), ::tolower);
+
+  if((legType!="right")&&(legType!="left")){
+    ROS_WARN("footTranslation: INCORRECT LEG INPUT");
+    return;
+  }
 
   this->initialization(pelvis_pose);
 
@@ -732,7 +740,10 @@ void op3_zmp_inv_kin::footTranslation(stepParam sp, std::string legType){
 
   for(int i=0; i<n_step; i++){
 
-    this->moveFoot(foot_poses.at(i), lleg_joint_pos_, legType);
+    if (legType == "right")
+      this->moveFoot(foot_poses.at(i), rleg_joint_pos_, legType);
+    if (legType == "left")
+      this->moveFoot(foot_poses.at(i), lleg_joint_pos_, legType);
 
     this->publishMessageROS(rleg_joint_pos_, lleg_joint_pos_);
     this->setJointPosition(rleg_joint_pos_, lleg_joint_pos_);
@@ -740,6 +751,81 @@ void op3_zmp_inv_kin::footTranslation(stepParam sp, std::string legType){
     rate.sleep();
 
   }
+
+}
+
+void op3_zmp_inv_kin::translateCoM(std::string legType){
+
+  Eigen::VectorXd rleg_joint_pos_;
+  Eigen::VectorXd lleg_joint_pos_;
+
+  rleg_joint_pos_.resize(JOINT_NUM);
+  lleg_joint_pos_.resize(JOINT_NUM);
+
+  //this->getJointPosition(rleg_joint_pos_, lleg_joint_pos_);
+
+  //get foot pose from FK
+  KDL::Frame des_pose;
+
+  if(!this->getFeetPose()){
+    return;
+  }
+
+  ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
+  ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
+
+  std::transform(legType.begin(),legType.end(),legType.begin(), ::tolower);
+
+  if (legType == "right"){
+    des_pose = pelvis_pose;                     // it actually doesn't matter, use for convinience
+    des_pose.p.data[0] = rfoot_pose.p.data[0];
+    des_pose.p.data[1] = rfoot_pose.p.data[1];
+  }
+  else{
+    if (legType == "left"){
+      des_pose = pelvis_pose;
+      des_pose.p.data[0] = lfoot_pose.p.data[0];
+      des_pose.p.data[1] = lfoot_pose.p.data[1];
+    }
+    else{
+      ROS_WARN("translateCoM: INCORRECT LEG INPUT");
+      return;
+    }
+  }
+
+  KDL::Frame pos = pelvis_pose;
+  //KDL::Frame pelvis_des_pose = pelvis_pose;
+  //pelvis_des_pose.p.data[1]+= y_val;
+
+  ros::Rate rate(freq);
+  double transl_time = 5.0; // sec
+  int numOfSteps = int (transl_time*freq);
+
+  double dx = (des_pose.p.x()-pelvis_pose.p.x())/numOfSteps;
+  double dy = (des_pose.p.y()-pelvis_pose.p.y())/numOfSteps;
+
+  for(int i=0;i<numOfSteps;i++){
+    pos.p.data[0] += dx;
+    pos.p.data[1] += dy;
+
+    this->movePelvis(pos, rleg_joint_pos_, "Right");
+    this->movePelvis(pos, lleg_joint_pos_, "Left");
+
+    this->publishMessageROS(rleg_joint_pos_, lleg_joint_pos_);
+    this->setJointPosition(rleg_joint_pos_, lleg_joint_pos_);
+
+    rate.sleep();
+  }
+
+  pelvis_pose = pos;
+
+  ROS_INFO("Pelvis pose x:%f, y:%f, z:%f",pelvis_pose.p.x(),pelvis_pose.p.y(),pelvis_pose.p.z());
+  //ROS_INFO("RIGHT foot pose x:%f, y:%f, z:%f",
+  //         rfoot_pose.p.x(), rfoot_pose.p.y(), rfoot_pose.p.z());
+
+
+  this->deleteSolvers();
+  this->deleteChains();
 
 }
 
@@ -751,12 +837,16 @@ void op3_zmp_inv_kin::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp){
 
   std::transform(init_leg.begin(),init_leg.end(),init_leg.begin(), ::tolower);
 
+  std::string sup_leg;
+
   if (init_leg == "right"){
-    this->initCoMTranslation("left");
+    sup_leg = "left";
+    this->initCoMTranslation(sup_leg);
   }
   else{
     if (init_leg == "left"){
-      this->initCoMTranslation("right");
+      sup_leg = "right";
+      this->initCoMTranslation(sup_leg);
     }
     else{
       ROS_WARN("INCORRECT INPUT");
@@ -764,8 +854,21 @@ void op3_zmp_inv_kin::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp){
     }
   }
 
-  this->footTranslation(sp, init_leg);
+  stepParam init_step = sp;
+  init_step.step_duration /= 2.0;
+  init_step.step_length /= 2.0;
 
+  //First step
+  this->footTranslation(init_step, init_leg);
+  this->translateCoM(init_leg);
+
+  //Second step
+  this->footTranslation(sp, sup_leg);
+  this->translateCoM(sup_leg);
+
+  //Third step
+  this->footTranslation(sp, init_leg);
+  this->translateCoM(init_leg);
 
 }
 
