@@ -21,11 +21,11 @@ int main (int argc, char **argv){
   op3_zmp_inv_kin::stepParam sp;
   sp.init_leg = "Left";
   sp.step_length = 30.0;   //mm
-  sp.step_duration = 8.0;  //sec
+  sp.step_duration = 3.0;  //sec
   sp.step_clearance = 15.0; //mm
 
   //move.goToInitialPose(goalPose);
-  move.quasiStatic(goalPose, sp);
+  move.quasiStatic(goalPose, sp, 10);
 
   return 0;
 }

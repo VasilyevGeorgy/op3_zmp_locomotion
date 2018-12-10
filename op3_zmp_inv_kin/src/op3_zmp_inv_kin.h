@@ -62,7 +62,7 @@ public:
   bool launchManager();
   void InitPoseTest(KDL::Frame pelvis_des_pose);
   void goToInitialPose(KDL::Frame pelvis_des_pose);
-  void quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp);
+  void quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp, double numOfSteps);
 
 private:
   //Step parameters

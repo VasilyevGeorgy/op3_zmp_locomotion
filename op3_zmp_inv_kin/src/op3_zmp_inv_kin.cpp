@@ -424,7 +424,7 @@ bool op3_zmp_inv_kin::footTrajectoryGeneration(std::vector<KDL::Frame> &foot_pos
     if(count<=n_up){
 
       cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                           KDL::Vector(sp.step_length*up_part*(1-cos(delta_t_up*count))/1000,
+                           KDL::Vector(sp.step_length*up_part*(1-cos(delta_t_up*count))/1000 +x_val,
                                        y_val,
                                        sp.step_clearance*sin(delta_t_up*count)/1000
                                        )
@@ -438,7 +438,7 @@ bool op3_zmp_inv_kin::footTrajectoryGeneration(std::vector<KDL::Frame> &foot_pos
     if((count>n_up)&&(count<=n_up+n_mid)){
 
       cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                           KDL::Vector(sp.step_length/n_step*count/1000,
+                           KDL::Vector(sp.step_length/n_step*count/1000 + x_val,
                                        y_val,
                                        sp.step_clearance/1000
                                        )
@@ -452,7 +452,7 @@ bool op3_zmp_inv_kin::footTrajectoryGeneration(std::vector<KDL::Frame> &foot_pos
     if((count>n_up+n_mid)&&(count<=n_step)){
 
       cur_frm = KDL::Frame(KDL::Rotation::RPY(0.0, 0.0, 0.0),
-                           KDL::Vector(sp.step_length*down_part*sin(delta_t_down*(count-(n_up+n_mid)))/1000 + sp.step_length/n_step*(n_up+n_mid)/1000,
+                           KDL::Vector(sp.step_length*down_part*sin(delta_t_down*(count-(n_up+n_mid)))/1000 + sp.step_length/n_step*(n_up+n_mid)/1000 + x_val,
                                        y_val,
                                        sp.step_clearance*cos(delta_t_down*(count-(n_up+n_mid)))/1000
                                        )
@@ -798,7 +798,7 @@ void op3_zmp_inv_kin::translateCoM(std::string legType){
   //pelvis_des_pose.p.data[1]+= y_val;
 
   ros::Rate rate(freq);
-  double transl_time = 5.0; // sec
+  double transl_time = 3.0; // 5 sec
   int numOfSteps = int (transl_time*freq);
 
   double dx = (des_pose.p.x()-pelvis_pose.p.x())/numOfSteps;
@@ -829,7 +829,12 @@ void op3_zmp_inv_kin::translateCoM(std::string legType){
 
 }
 
-void op3_zmp_inv_kin::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp){
+void op3_zmp_inv_kin::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp, double numOfSteps){
+
+  if((numOfSteps <= 0.0)||(int(numOfSteps)-numOfSteps !=0)){
+    ROS_WARN("quasiStatic: INCORRECT NUMBER OF STEPS");
+    return;
+  }
 
   this->goToInitialPose(pelvis_des_pose);
 
@@ -849,7 +854,7 @@ void op3_zmp_inv_kin::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp){
       this->initCoMTranslation(sup_leg);
     }
     else{
-      ROS_WARN("INCORRECT INPUT");
+      ROS_WARN("quasiStatic: INCORRECT LEG INPUT");
       return;
     }
   }
@@ -862,13 +867,24 @@ void op3_zmp_inv_kin::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp){
   this->footTranslation(init_step, init_leg);
   this->translateCoM(init_leg);
 
-  //Second step
-  this->footTranslation(sp, sup_leg);
-  this->translateCoM(sup_leg);
+  for(int i=2; i<=numOfSteps; i++){
+    if (i%2 == 0){
+      this->footTranslation(sp, sup_leg);
+      this->translateCoM(sup_leg);
+    }
+    if (i%2 == 1){
+      this->footTranslation(sp, init_leg);
+      this->translateCoM(init_leg);
+    }
+  }
 
-  //Third step
-  this->footTranslation(sp, init_leg);
-  this->translateCoM(init_leg);
+  ////Second step
+  //this->footTranslation(sp, sup_leg);
+  //this->translateCoM(sup_leg);
+  //
+  ////Third step
+  //this->footTranslation(sp, init_leg);
+  //this->translateCoM(init_leg);
 
 }
 
