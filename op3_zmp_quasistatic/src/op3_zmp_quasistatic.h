@@ -53,6 +53,7 @@ public:
   virtual ~op3_zmp_quasistatic();
 
   struct stepParam{
+    double num_of_steps;
     std::string init_leg;
     double step_length; //mm
     double step_duration; //sec
@@ -62,7 +63,8 @@ public:
   bool launchManager();
   void InitPoseTest(KDL::Frame pelvis_des_pose);
   void goToInitialPose(KDL::Frame pelvis_des_pose);
-  void quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp, double numOfSteps);
+  void quasiStaticPlaner(KDL::Frame pelvis_des_pose, stepParam sp);
+  void locomotion();
 
 private:
   //Trajectory and Joint angles' vectors
@@ -71,6 +73,7 @@ private:
   //std::vector<KDL::Frame> pelivis_poses;
   std::vector<Eigen::VectorXd> rleg_joint_angles;
   std::vector<Eigen::VectorXd> lleg_joint_angles;
+  long unsigned int counter;
 
 
   //Step parameters

@@ -14,13 +14,15 @@ int main (int argc, char **argv){
   //move.InitPoseTest(goalPose);
 
   op3_zmp_quasistatic::stepParam sp;
+  sp.num_of_steps = 5.0;
   sp.init_leg = "Left";
   sp.step_length = 30.0;   //mm
   sp.step_duration = 3.0;  //sec
   sp.step_clearance = 15.0; //mm
 
   //move.goToInitialPose(goalPose);
-  move.quasiStatic(goalPose, sp, 10);
+  move.quasiStaticPlaner(goalPose, sp);
+  move.locomotion();
 
   return 0;
 }

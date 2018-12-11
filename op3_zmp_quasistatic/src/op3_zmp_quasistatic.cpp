@@ -841,9 +841,9 @@ void op3_zmp_quasistatic::translateCoM(std::string legType){
 
 }
 
-void op3_zmp_quasistatic::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp, double numOfSteps){
+void op3_zmp_quasistatic::quasiStaticPlaner(KDL::Frame pelvis_des_pose, stepParam sp){
 
-  if((numOfSteps <= 0.0)||(int(numOfSteps)-numOfSteps !=0)){
+  if((sp.num_of_steps <= 0.0)||(int(sp.num_of_steps)-sp.num_of_steps !=0)){
     ROS_WARN("quasiStatic: INCORRECT NUMBER OF STEPS");
     return;
   }
@@ -882,7 +882,7 @@ void op3_zmp_quasistatic::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp, 
   this->translateCoM(init_leg);
 
   //Walking loop
-  for(int i=2; i<=numOfSteps; i++){
+  for(int i=2; i<=int(sp.num_of_steps); i++){
     if (i%2 == 0){
       this->footTranslation(sp, sup_leg);
       this->translateCoM(sup_leg);
@@ -895,6 +895,23 @@ void op3_zmp_quasistatic::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp, 
 
   //ROS_INFO("Size of RLEG_JNT_ANGLES: %lu", rleg_joint_angles.size());
   //ROS_INFO("Size of LLEG_JNT_ANGLES: %lu", lleg_joint_angles.size());
+
+
+
+  //int c;
+  ///* use system call to make terminal send all keystrokes directly to stdin */
+  //system ("/bin/stty raw");
+  //while((c=std::getchar())!= 27) {
+  //
+  //  /* type a period to break out of the loop, since CTRL-D won't work raw */
+  //  //std::putchar(c);
+  //}
+  ///* use system call to set terminal behaviour to more normal behaviour */
+  //system ("/bin/stty cooked");
+
+}
+
+void op3_zmp_quasistatic::locomotion(){
 
   ros::Rate rate(freq);
 
@@ -910,8 +927,6 @@ void op3_zmp_quasistatic::quasiStatic(KDL::Frame pelvis_des_pose, stepParam sp, 
 
     rate.sleep();
   }
-
-
 }
 
 
