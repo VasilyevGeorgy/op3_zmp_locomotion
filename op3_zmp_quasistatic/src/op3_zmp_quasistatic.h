@@ -5,10 +5,14 @@
 #include <stdlib.h>
 #include <string>
 #include <cmath>
+#include <ctime>
 #include <vector>
 #include <map>
 #include <limits>
+#include <thread>
 
+//#include <ctime>
+//#include "ctime"
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
@@ -53,6 +57,12 @@ public:
   virtual ~op3_zmp_quasistatic();
 
   struct stepParam{
+    stepParam(double freq = 200, double num_of_steps = 1.0,
+              std::string init_leg = "left", double step_length = 30.0,
+              double step_duration = 3.0, double step_clearance = 15.0)
+              : freq(freq), num_of_steps(num_of_steps), init_leg(init_leg), step_length(step_length), step_duration(step_duration), step_clearance(step_clearance)
+    {}
+    double freq;
     double num_of_steps;
     std::string init_leg;
     double step_length; //mm
@@ -62,9 +72,12 @@ public:
 
   bool launchManager();
   void InitPoseTest(KDL::Frame pelvis_des_pose);
-  void goToInitialPose(KDL::Frame pelvis_des_pose);
+  void goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp);
   void quasiStaticPlaner(KDL::Frame pelvis_des_pose, stepParam sp);
-  void locomotion();
+  void locomotion(stepParam sp);
+  void perFrameLocomotion(unsigned long int num_of_frame);
+  void getAnglesVectors(std::vector<Eigen::VectorXd> &rleg_joint_angles_,
+                        std::vector<Eigen::VectorXd> &lleg_joint_angles_);
 
 private:
   //Trajectory and Joint angles' vectors
@@ -73,11 +86,11 @@ private:
   //std::vector<KDL::Frame> pelivis_poses;
   std::vector<Eigen::VectorXd> rleg_joint_angles;
   std::vector<Eigen::VectorXd> lleg_joint_angles;
-  long unsigned int counter;
+  //long unsigned int counter;
 
 
   //Step parameters
-  double freq;
+  //double freq;
   double up_part;
   double down_part;
 
@@ -183,9 +196,9 @@ private:
   bool moveFoot(KDL::Frame foot_des_pose, Eigen::VectorXd &leg_des_joint_pos_, std::string legType);
   bool movePelvis(KDL::Frame leg_des_pose, Eigen::VectorXd &leg_des_joint_pos_, std::string legType);
   bool footTrajectoryGeneration(std::vector<KDL::Frame> &foot_poses, stepParam sp, std::string legType);
-  void initCoMTranslation(std::string legType);
+  void initCoMTranslation(std::string legType, stepParam sp);
   void footTranslation(stepParam sp, std::string legType);
-  void translateCoM(std::string legType);
+  void translateCoM(std::string legType, stepParam sp);
   void publishMessageROS(Eigen::VectorXd rleg_jnt_angle_, Eigen::VectorXd lleg_jnt_angle_);
 
 

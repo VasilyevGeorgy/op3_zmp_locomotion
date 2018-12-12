@@ -1,34 +1,21 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(op3_zmp_quasistatic)
+project(op3_keyboard_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+# add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
-  geometry_msgs
-  op3_balance_control
-  op3_online_walking_module_msgs
-  orocos_kdl
-  robotis_controller_msgs
-  robotis_device
-  robotis_framework_common
-  robotis_math
   roscpp
-  roslib
-  sensor_msgs
   std_msgs
-  message_generation
-  message_runtime
 )
+find_package(Curses REQUIRED)
 
 ## System dependencies are found with CMake's conventions
- find_package(Boost REQUIRED COMPONENTS system)
- find_package(Eigen3 REQUIRED)
- find_package(orocos_kdl REQUIRED)
+# find_package(Boost REQUIRED COMPONENTS system)
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -67,10 +54,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
- add_service_files(
-   FILES
-   op3_zmp_quasistatic_service.srv
- )
+# add_service_files(
+#   FILES
+#   Service1.srv
+#   Service2.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -80,10 +68,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs #geometry_msgs#   op3_online_walking_module_msgs#   robotis_controller_msgs#   sensor_msgs   
- )
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -116,8 +104,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES op3_zmp_quasistatic
-#  CATKIN_DEPENDS cmake_modules geometry_msgs op3_balance_control op3_online_walking_module_msgs orocos_kdl robotis_controller_msgs robotis_device robotis_framework_common robotis_math roscpp roslib sensor_msgs std_msgs
+#  LIBRARIES op3_keyboard_control
+#  CATKIN_DEPENDS roscpp std_msgs
 #  DEPENDS system_lib
 )
 
@@ -130,13 +118,12 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-
+  ${CURSES_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/op3_zmp_quasistatic.cpp
+#   src/${PROJECT_NAME}/op3_keyboard_control.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -147,7 +134,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_node src/main.cpp src/op3_zmp_quasistatic.cpp src/op3_leg_chains.cpp)
+add_executable(${PROJECT_NAME}_node src/main.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -161,7 +148,8 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
-   ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${Eigen3_LIBRARIES} ${orocos_kdl_LIBRARIES}
+   ${catkin_LIBRARIES}
+   ${CURSES_LIBRARIES}
  )
 
 #############
@@ -204,7 +192,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_op3_zmp_quasistatic.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_op3_keyboard_control.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

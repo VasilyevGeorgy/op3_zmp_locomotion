@@ -23,7 +23,6 @@ op3_zmp_quasistatic::op3_zmp_quasistatic()
   }
 
   getCallback = true;
-  freq = 200; // in HZ
 
 }
 
@@ -386,7 +385,7 @@ bool op3_zmp_quasistatic::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd
 
 bool op3_zmp_quasistatic::footTrajectoryGeneration(std::vector<KDL::Frame> &foot_poses, stepParam sp, std::string legType){
 
-  int n_step = int (freq*sp.step_duration);
+  int n_step = int (sp.freq*sp.step_duration);
   up_part = 0.25;
   down_part = 0.25; //up_part + down_part <= 1
 
@@ -542,8 +541,6 @@ void op3_zmp_quasistatic::InitPoseTest(KDL::Frame pelvis_des_pose){
     this->publishMessageROS(rleg_joint_pos_, lleg_joint_pos_);
     this->setJointPosition(rleg_joint_pos_, lleg_joint_pos_);
 
-    //pelvis_pose = pos;
-
     rate.sleep();
   }
 
@@ -558,7 +555,7 @@ bool op3_zmp_quasistatic::launchManager(){
 
 }
 
-void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose){
+void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam sp){
 
   ROS_INFO("Initial position trajectory planning");
 
@@ -598,9 +595,9 @@ void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose){
   ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
   ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
 
-  ros::Rate rate(freq);
+  //ros::Rate rate(sp.freq);
   double time = 5; // in sec
-  int numOfSteps = int (freq*time);
+  int numOfSteps = int (sp.freq*time);
 
   double dz = (pelvis_des_pose.p.z()-pelvis_pose.p.z())/numOfSteps;
 
@@ -638,7 +635,7 @@ void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose){
 
 }
 
-void op3_zmp_quasistatic::initCoMTranslation(std::string legType){
+void op3_zmp_quasistatic::initCoMTranslation(std::string legType, stepParam sp){
 
   double y_val = 0.0;
 
@@ -680,9 +677,9 @@ void op3_zmp_quasistatic::initCoMTranslation(std::string legType){
   KDL::Frame pelvis_des_pose = pelvis_pose;
   pelvis_des_pose.p.data[1]+= y_val;
 
-  ros::Rate rate(freq);
+  //ros::Rate rate(sp.freq);
   double transl_time = 2.0; // sec
-  int numOfSteps = int (transl_time*freq);
+  int numOfSteps = int (transl_time*sp.freq);
 
   double dy = (pelvis_des_pose.p.y()-pelvis_pose.p.y())/numOfSteps;
 
@@ -738,8 +735,8 @@ void op3_zmp_quasistatic::footTranslation(stepParam sp, std::string legType){
   ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
   ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
 
-  ros::Rate rate(freq);
-  int n_step = int (freq*sp.step_duration);
+  //ros::Rate rate(sp.freq);
+  int n_step = int (sp.freq*sp.step_duration);
   std::vector<KDL::Frame> foot_poses;
 
   this->footTrajectoryGeneration(foot_poses, sp, legType);
@@ -763,7 +760,7 @@ void op3_zmp_quasistatic::footTranslation(stepParam sp, std::string legType){
 
 }
 
-void op3_zmp_quasistatic::translateCoM(std::string legType){
+void op3_zmp_quasistatic::translateCoM(std::string legType, stepParam sp){
 
   Eigen::VectorXd rleg_joint_pos_;
   Eigen::VectorXd lleg_joint_pos_;
@@ -803,12 +800,10 @@ void op3_zmp_quasistatic::translateCoM(std::string legType){
   }
 
   KDL::Frame pos = pelvis_pose;
-  //KDL::Frame pelvis_des_pose = pelvis_pose;
-  //pelvis_des_pose.p.data[1]+= y_val;
 
-  ros::Rate rate(freq);
+  //ros::Rate rate(sp.freq);
   double transl_time = 3.0; // 5 sec
-  int numOfSteps = int (transl_time*freq);
+  int numOfSteps = int (transl_time*sp.freq);
 
   double dx = (des_pose.p.x()-pelvis_pose.p.x())/numOfSteps;
   double dy = (des_pose.p.y()-pelvis_pose.p.y())/numOfSteps;
@@ -849,7 +844,7 @@ void op3_zmp_quasistatic::quasiStaticPlaner(KDL::Frame pelvis_des_pose, stepPara
   }
 
   //Set initial Pose
-  this->goToInitialPose(pelvis_des_pose);
+  this->goToInitialPose(pelvis_des_pose, sp);
 
   std::string init_leg = sp.init_leg;
 
@@ -860,12 +855,12 @@ void op3_zmp_quasistatic::quasiStaticPlaner(KDL::Frame pelvis_des_pose, stepPara
   //Inital CoM translation
   if (init_leg == "right"){
     sup_leg = "left";
-    this->initCoMTranslation(sup_leg);
+    this->initCoMTranslation(sup_leg, sp);
   }
   else{
     if (init_leg == "left"){
       sup_leg = "right";
-      this->initCoMTranslation(sup_leg);
+      this->initCoMTranslation(sup_leg, sp);
     }
     else{
       ROS_WARN("quasiStatic: INCORRECT LEG INPUT");
@@ -879,17 +874,17 @@ void op3_zmp_quasistatic::quasiStaticPlaner(KDL::Frame pelvis_des_pose, stepPara
 
   //First step
   this->footTranslation(init_step, init_leg);
-  this->translateCoM(init_leg);
+  this->translateCoM(init_leg, sp);
 
   //Walking loop
   for(int i=2; i<=int(sp.num_of_steps); i++){
     if (i%2 == 0){
       this->footTranslation(sp, sup_leg);
-      this->translateCoM(sup_leg);
+      this->translateCoM(sup_leg, sp);
     }
     if (i%2 == 1){
       this->footTranslation(sp, init_leg);
-      this->translateCoM(init_leg);
+      this->translateCoM(init_leg, sp);
     }
   }
 
@@ -911,9 +906,9 @@ void op3_zmp_quasistatic::quasiStaticPlaner(KDL::Frame pelvis_des_pose, stepPara
 
 }
 
-void op3_zmp_quasistatic::locomotion(){
+void op3_zmp_quasistatic::locomotion(stepParam sp){
 
-  ros::Rate rate(freq);
+  ros::Rate rate(sp.freq);
 
   long unsigned int counter = 0;
 
@@ -929,6 +924,21 @@ void op3_zmp_quasistatic::locomotion(){
   }
 }
 
+void op3_zmp_quasistatic::perFrameLocomotion(unsigned long int num_of_frame){
 
+  if(ros::ok())
+    this->publishMessageROS(rleg_joint_angles.at(num_of_frame), lleg_joint_angles.at(num_of_frame));
+
+}
+
+void op3_zmp_quasistatic::getAnglesVectors(std::vector<Eigen::VectorXd> &rleg_joint_angles_,
+                                           std::vector<Eigen::VectorXd> &lleg_joint_angles_)
+{
+  for (unsigned long int counter = 0; counter < rleg_joint_angles.size(); counter++){
+   rleg_joint_angles_.push_back(rleg_joint_angles.at(counter));
+   lleg_joint_angles_.push_back(lleg_joint_angles.at(counter));
+  }
+
+}
 
 
