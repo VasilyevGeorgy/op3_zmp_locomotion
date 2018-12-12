@@ -27,6 +27,8 @@ op3_zmp_quasistatic::op3_zmp_quasistatic()
   keyboard_run = false;
   keyboard_quit = false;
 
+  manager_is_launched = false;
+
 }
 
 op3_zmp_quasistatic::~op3_zmp_quasistatic(){
@@ -71,6 +73,8 @@ void op3_zmp_quasistatic::initializeROSSim(){
 
 void op3_zmp_quasistatic::initializeROSMan(){
 
+  ROS_INFO("Test0");
+
   ros::Publisher set_mode_servo = node.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 1000);
   std_msgs::String mode_motor;
   mode_motor.data = "direct_control_module";
@@ -95,7 +99,6 @@ void op3_zmp_quasistatic::managerJointPos(){
   }
 
   getJointCallback = true;
-
 
 }
 
@@ -576,6 +579,8 @@ bool op3_zmp_quasistatic::launchManager(){
 
   std::system(RUNMNGRSCRIPT);
 
+  manager_is_launched = true;
+
   ros::Duration(7.5).sleep();
 
   return true; // TODO: error processing!
@@ -596,69 +601,80 @@ void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam 
 
   Eigen::VectorXd rleg_joint_pos_;
   Eigen::VectorXd lleg_joint_pos_;
-
   rleg_joint_pos_.resize(JOINT_NUM);
-  rleg_joint_pos_(0) =  0.001;
-  rleg_joint_pos_(1) = -0.001;
-  rleg_joint_pos_(2) =  0.001;
-  rleg_joint_pos_(3) = -0.001;
-  rleg_joint_pos_(4) =  0.001;
-  rleg_joint_pos_(5) = -0.001;
-
   lleg_joint_pos_.resize(JOINT_NUM);
-  lleg_joint_pos_(0) = 0.001;
-  lleg_joint_pos_(1) = 0.001;
-  lleg_joint_pos_(2) = 0.001;
-  lleg_joint_pos_(3) = 0.001;
-  lleg_joint_pos_(4) = 0.001;
-  lleg_joint_pos_(5) = 0.001;
 
-  this->setJointPosition(rleg_joint_pos_,lleg_joint_pos_);
+  ROS_INFO("Test1");
+
+  if(manager_is_launched){
+    this->managerJointPos();
+    this->initializeROSMan();
+    ROS_INFO("Test2");
+  }
+  else{
+    rleg_joint_pos_(0) =  0.001;
+    rleg_joint_pos_(1) = -0.001;
+    rleg_joint_pos_(2) =  0.001;
+    rleg_joint_pos_(3) = -0.001;
+    rleg_joint_pos_(4) =  0.001;
+    rleg_joint_pos_(5) = -0.001;
+
+    lleg_joint_pos_(0) = 0.001;
+    lleg_joint_pos_(1) = 0.001;
+    lleg_joint_pos_(2) = 0.001;
+    lleg_joint_pos_(3) = 0.001;
+    lleg_joint_pos_(4) = 0.001;
+    lleg_joint_pos_(5) = 0.001;
+
+    this->setJointPosition(rleg_joint_pos_,lleg_joint_pos_);
+    this->initializeROSSim();
+    ROS_INFO("Test3");
+
+  }
 
   if (!this->getFeetPose()){
     return;
   }
 
+  ROS_INFO("Test4");
+
   ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
   ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
 
-  //ros::Rate rate(sp.freq);
-  double time = 5; // in sec
-  int numOfSteps = int (sp.freq*time);
-
-  double dz = (pelvis_des_pose.p.z()-pelvis_pose.p.z())/numOfSteps;
-
-  //std::cout<<"pelvis_des_pose.p.z() = "<<pelvis_des_pose.p.z()<<std::endl;
-  //std::cout<<"pelvis_pose.p.z() = "<<pelvis_pose.p.z()<<std::endl;
-  //std::cout<<"dz = "<<dz<<std::endl;
-
-  this->initializeROSSim();
-
-  KDL::Frame pos = pelvis_pose;
-
-  //Move CoM #1
-  for(int i=0;i<numOfSteps;i++){
-    pos.p.data[2] += dz;
-    //std::cout<<"pos.p.z() = "<<pos.p.z()<<std::endl;
-
-    this->movePelvis(pos, rleg_joint_pos_, "Right");
-    this->movePelvis(pos, lleg_joint_pos_, "Left");
-
-    //this->publishMessageROS(rleg_joint_pos_, lleg_joint_pos_);
-    rleg_joint_angles.push_back(rleg_joint_pos_);
-    lleg_joint_angles.push_back(lleg_joint_pos_);
-
-    this->setJointPosition(rleg_joint_pos_, lleg_joint_pos_);
-
-    //pelvis_pose = pos;
-
-    //rate.sleep();
-  }
-
-  pelvis_pose = pos;
-
-  this->deleteSolvers();
-  this->deleteChains();
+  ////ros::Rate rate(sp.freq);
+  //double time = 5; // in sec
+  //int numOfSteps = int (sp.freq*time);
+  //
+  //double dz = (pelvis_des_pose.p.z()-pelvis_pose.p.z())/numOfSteps;
+  //
+  ////std::cout<<"pelvis_des_pose.p.z() = "<<pelvis_des_pose.p.z()<<std::endl;
+  ////std::cout<<"pelvis_pose.p.z() = "<<pelvis_pose.p.z()<<std::endl;
+  ////std::cout<<"dz = "<<dz<<std::endl;
+  //
+  //KDL::Frame pos = pelvis_pose;
+  //
+  //for(int i=0;i<numOfSteps;i++){
+  //  pos.p.data[2] += dz;
+  //  //std::cout<<"pos.p.z() = "<<pos.p.z()<<std::endl;
+  //
+  //  this->movePelvis(pos, rleg_joint_pos_, "Right");
+  //  this->movePelvis(pos, lleg_joint_pos_, "Left");
+  //
+  //  //this->publishMessageROS(rleg_joint_pos_, lleg_joint_pos_);
+  //  rleg_joint_angles.push_back(rleg_joint_pos_);
+  //  lleg_joint_angles.push_back(lleg_joint_pos_);
+  //
+  //  this->setJointPosition(rleg_joint_pos_, lleg_joint_pos_);
+  //
+  //  //pelvis_pose = pos;
+  //
+  //  //rate.sleep();
+  //}
+  //
+  //pelvis_pose = pos;
+  //
+  //this->deleteSolvers();
+  //this->deleteChains();
 
 }
 
