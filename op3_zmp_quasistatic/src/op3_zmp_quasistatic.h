@@ -19,6 +19,7 @@
 #include <ros/package.h>
 #include <geometry_msgs/Pose.h>
 #include "std_msgs/Float64.h"
+#include "std_msgs/String.h"
 #include "sensor_msgs/JointState.h"
 
 #include <eigen3/Eigen/Eigen>
@@ -86,7 +87,8 @@ private:
   //std::vector<KDL::Frame> pelivis_poses;
   std::vector<Eigen::VectorXd> rleg_joint_angles;
   std::vector<Eigen::VectorXd> lleg_joint_angles;
-  //long unsigned int counter;
+  long unsigned int counter;
+  bool control_status;
 
 
   //Step parameters
@@ -200,6 +202,7 @@ private:
   void footTranslation(stepParam sp, std::string legType);
   void translateCoM(std::string legType, stepParam sp);
   void publishMessageROS(Eigen::VectorXd rleg_jnt_angle_, Eigen::VectorXd lleg_jnt_angle_);
+  void keyboardContolCallback(const std_msgs::String::ConstPtr &cntrl_status);
 
 
 

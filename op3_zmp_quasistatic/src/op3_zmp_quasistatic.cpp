@@ -23,6 +23,7 @@ op3_zmp_quasistatic::op3_zmp_quasistatic()
   }
 
   getCallback = true;
+  control_status = false;
 
 }
 
@@ -891,37 +892,55 @@ void op3_zmp_quasistatic::quasiStaticPlaner(KDL::Frame pelvis_des_pose, stepPara
   //ROS_INFO("Size of RLEG_JNT_ANGLES: %lu", rleg_joint_angles.size());
   //ROS_INFO("Size of LLEG_JNT_ANGLES: %lu", lleg_joint_angles.size());
 
-
-
-  //int c;
-  ///* use system call to make terminal send all keystrokes directly to stdin */
-  //system ("/bin/stty raw");
-  //while((c=std::getchar())!= 27) {
-  //
-  //  /* type a period to break out of the loop, since CTRL-D won't work raw */
-  //  //std::putchar(c);
-  //}
-  ///* use system call to set terminal behaviour to more normal behaviour */
-  //system ("/bin/stty cooked");
-
 }
 
 void op3_zmp_quasistatic::locomotion(stepParam sp){
 
+  ros::Subscriber control_sub = node.subscribe("/op3_keyboard_control",
+                                               100, &op3_zmp_quasistatic::keyboardContolCallback,this);
+
+  counter = 0;
   ros::Rate rate(sp.freq);
+  while((ros::ok())&&(counter<rleg_joint_angles.size())){
 
-  long unsigned int counter = 0;
+    this->perFrameLocomotion(counter);
 
-  for(; counter<rleg_joint_angles.size(); counter++){
+    if(control_status)
+      counter++;
 
-    if(ros::ok()){
-      this->publishMessageROS(rleg_joint_angles.at(counter), lleg_joint_angles.at(counter));
-    }
-    else
-      break;
-
+    ros::spinOnce();
     rate.sleep();
   }
+/*
+  //  present_joint_states_sub = node.subscribe("/robotis/present_joint_states",1000, &op3_zmp_quasistatic::pres_state_callback, this);
+
+
+  //long unsigned int counter = 0;
+
+  //for(; counter<rleg_joint_angles.size(); counter++){
+  //
+  //  if(ros::ok()){
+  //    this->publishMessageROS(rleg_joint_angles.at(counter), lleg_joint_angles.at(counter));
+  //  }
+  //  else
+  //    break;
+  //
+  //  rate.sleep();
+  //}
+*/
+}
+
+void op3_zmp_quasistatic::keyboardContolCallback(const std_msgs::String::ConstPtr &cntrl_status){
+
+  if(cntrl_status->data == "run")
+    control_status = true;
+  else
+    control_status = false;
+
+  if(cntrl_status->data == "quit"){
+    counter = rleg_joint_angles.size();
+  }
+
 }
 
 void op3_zmp_quasistatic::perFrameLocomotion(unsigned long int num_of_frame){
@@ -934,11 +953,22 @@ void op3_zmp_quasistatic::perFrameLocomotion(unsigned long int num_of_frame){
 void op3_zmp_quasistatic::getAnglesVectors(std::vector<Eigen::VectorXd> &rleg_joint_angles_,
                                            std::vector<Eigen::VectorXd> &lleg_joint_angles_)
 {
-  for (unsigned long int counter = 0; counter < rleg_joint_angles.size(); counter++){
-   rleg_joint_angles_.push_back(rleg_joint_angles.at(counter));
-   lleg_joint_angles_.push_back(lleg_joint_angles.at(counter));
+  for (unsigned long int cntr = 0; cntr < rleg_joint_angles.size(); cntr++){
+   rleg_joint_angles_.push_back(rleg_joint_angles.at(cntr));
+   lleg_joint_angles_.push_back(lleg_joint_angles.at(cntr));
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 

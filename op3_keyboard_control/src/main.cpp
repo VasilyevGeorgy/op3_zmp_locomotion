@@ -18,7 +18,7 @@ int main (int argc, char **argv){
   ros::Publisher get_key_pub = node.advertise<std_msgs::String>("op3_keyboard_control", 1000);
 
   ROS_INFO("Use keyboard to control robot locomotion process");
-  ROS_INFO("***Press   R   to start***");
+  ROS_INFO("***Press   R   to start**");
   ROS_INFO("***Press SPACE to stop***");
   ROS_INFO("***Press   Q   to quit***");
 
