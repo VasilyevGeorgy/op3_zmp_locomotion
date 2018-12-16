@@ -363,10 +363,10 @@ bool op3_zmp_quasistatic::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd
       for (int i=0; i<JOINT_NUM;i++){
           leg_des_joint_pos_(i) = rleg_des_joint_pos(i);
       }
-      //ROS_INFO("Right leg (deg) hip_yaw:%f, hip_r:%f, hip_p:%f, kn_p:%f, an_p :%f, an_r:%f",
-      //         leg_des_joint_pos_(0)*R2D,leg_des_joint_pos_(1)*R2D,leg_des_joint_pos_(2)*R2D,
-      //         leg_des_joint_pos_(3)*R2D,leg_des_joint_pos_(4)*R2D,leg_des_joint_pos_(5)*R2D
-      //         );
+      ROS_INFO("Right leg (deg) hip_yaw:%f, hip_r:%f, hip_p:%f, kn_p:%f, an_p :%f, an_r:%f",
+               leg_des_joint_pos_(0)*R2D,leg_des_joint_pos_(1)*R2D,leg_des_joint_pos_(2)*R2D,
+               leg_des_joint_pos_(3)*R2D,leg_des_joint_pos_(4)*R2D,leg_des_joint_pos_(5)*R2D
+               );
 
       return true;
     }
@@ -391,10 +391,10 @@ bool op3_zmp_quasistatic::movePelvis(KDL::Frame pelvis_des_pose, Eigen::VectorXd
         for (int i=0; i<JOINT_NUM;i++){
             leg_des_joint_pos_(i) = lleg_des_joint_pos(i);
         }
-        //ROS_INFO("Left leg (deg) hip_yaw:%f, hip_r:%f, hip_p:%f, kn_p:%f, an_p :%f, an_r:%f",
-        //         leg_des_joint_pos_(0)*R2D,leg_des_joint_pos_(1)*R2D,leg_des_joint_pos_(2)*R2D,
-        //         leg_des_joint_pos_(3)*R2D,leg_des_joint_pos_(4)*R2D,leg_des_joint_pos_(5)*R2D
-        //         );
+        ROS_INFO("Left leg (deg) hip_yaw:%f, hip_r:%f, hip_p:%f, kn_p:%f, an_p :%f, an_r:%f",
+                 leg_des_joint_pos_(0)*R2D,leg_des_joint_pos_(1)*R2D,leg_des_joint_pos_(2)*R2D,
+                 leg_des_joint_pos_(3)*R2D,leg_des_joint_pos_(4)*R2D,leg_des_joint_pos_(5)*R2D
+                 );
 
         return true;
       }
@@ -619,8 +619,16 @@ void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam 
     return;
   }
 
+  double roll, pitch, yaw;
+  rfoot_pose.M.GetRPY(roll,pitch,yaw);
+
   ROS_INFO("Right foot x:%f, y:%f, z:%f",rfoot_pose.p.x(),rfoot_pose.p.y(),rfoot_pose.p.z());
+  ROS_INFO("Right foot orientation r:%f, p:%f, y:%f", roll, pitch, yaw);
+
+  lfoot_pose.M.GetRPY(roll,pitch,yaw);
+
   ROS_INFO(" Left foot x:%f, y:%f, z:%f",lfoot_pose.p.x(),lfoot_pose.p.y(),lfoot_pose.p.z());
+  ROS_INFO(" Left foot orientation r:%f, p:%f, y:%f", roll, pitch, yaw);
 
   //ros::Rate rate(sp.freq);
   double time = 5; // in sec

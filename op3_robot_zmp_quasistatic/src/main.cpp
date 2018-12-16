@@ -30,6 +30,8 @@ int main (int argc, char **argv){
   lleg_joint_pos_.resize(JOINT_NUM);
 
   move.goToInitialPose(goalPose, sp);
+  move.locomotion(sp);
+
 
   //move.managerJointPos();
   //move.getJointPosition(rleg_joint_pos_,lleg_joint_pos_);
