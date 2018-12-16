@@ -75,11 +75,11 @@ void op3_zmp_quasistatic::initializeROSMan(){
 
   ROS_INFO("Test0");
 
-  ros::Publisher set_mode_servo = node.advertise<std_msgs::String>("/robotis/set_control_mode", 1000); // or set_control_mode
-  std_msgs::String mode_motor;
-  mode_motor.data = "direct_control_mode"; // direct_control_mode sets corresponding mode in op3_manager
-  usleep(1000 * 1000); // 1000 msec delay
-  set_mode_servo.publish(mode_motor);
+  //ros::Publisher set_mode_servo = node.advertise<std_msgs::String>("/robotis/set_control_mode", 1000); // or set_control_mode
+  //std_msgs::String mode_motor;
+  //mode_motor.data = "direct_control_mode"; // direct_control_mode sets corresponding mode in op3_manager
+  //usleep(1000 * 1000); // 1000 msec delay
+  //set_mode_servo.publish(mode_motor);
 
   //ros::Publisher set_mode_servo = node.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules",1000);
   //robotis_controller_msgs::JointCtrlModule jnt_cntr_mdl_msg;
@@ -111,6 +111,8 @@ void op3_zmp_quasistatic::initializeROSMan(){
   //set_mode_servo.publish(jnt_cntr_mdl_msg);
 
 
+
+  this->setDirectModule();
 
   // set op3_manager joint servos topics
   leg_joints_pub = node.advertise<sensor_msgs::JointState>("/robotis/direct_control/set_joint_states",1000);
@@ -215,11 +217,9 @@ void op3_zmp_quasistatic::publishMessageROS(Eigen::VectorXd rleg_jnt_angle_, Eig
 void op3_zmp_quasistatic::publishMessageROSMan(Eigen::VectorXd rleg_jnt_angle_, Eigen::VectorXd lleg_jnt_angle_){
 
   sensor_msgs::JointState joint_angles_msg;
-
-  joint_angles_msg.position.resize(20);
-  joint_angles_msg.velocity.resize(20);
-  joint_angles_msg.effort.resize(20);
-  joint_angles_msg.name.resize(20);
+/*
+  joint_angles_msg.name.resize(12);
+  joint_angles_msg.position.resize(12);
 
   joint_angles_msg.position[16] = rleg_jnt_angle_(0); // r_hip_yaw
   joint_angles_msg.position[15] = rleg_jnt_angle_(1); // r_hip_roll
@@ -244,6 +244,46 @@ void op3_zmp_quasistatic::publishMessageROSMan(Eigen::VectorXd rleg_jnt_angle_, 
            joint_angles_msg.position[7],joint_angles_msg.position[6],
            joint_angles_msg.position[5],joint_angles_msg.position[8],
            joint_angles_msg.position[2],joint_angles_msg.position[3]);
+*/
+  //Right leg
+  joint_angles_msg.name.push_back("r_hip_yaw");
+  joint_angles_msg.position.push_back(rleg_jnt_angle_(0));
+
+  joint_angles_msg.name.push_back("r_hip_roll");
+  joint_angles_msg.position.push_back(rleg_jnt_angle_(1));
+
+  joint_angles_msg.name.push_back("r_hip_pitch");
+  joint_angles_msg.position.push_back(rleg_jnt_angle_(2));
+
+  joint_angles_msg.name.push_back("r_knee");
+  joint_angles_msg.position.push_back(rleg_jnt_angle_(3));
+
+  joint_angles_msg.name.push_back("r_ank_pitch");
+  joint_angles_msg.position.push_back(rleg_jnt_angle_(4));
+
+  joint_angles_msg.name.push_back("r_ank_roll");
+  joint_angles_msg.position.push_back(rleg_jnt_angle_(5));
+
+  //Left leg
+  joint_angles_msg.name.push_back("l_hip_yaw");
+  joint_angles_msg.position.push_back(lleg_jnt_angle_(0));
+
+  joint_angles_msg.name.push_back("l_hip_roll");
+  joint_angles_msg.position.push_back(lleg_jnt_angle_(1));
+
+  joint_angles_msg.name.push_back("l_hip_pitch");
+  joint_angles_msg.position.push_back(lleg_jnt_angle_(2));
+
+  joint_angles_msg.name.push_back("l_knee");
+  joint_angles_msg.position.push_back(lleg_jnt_angle_(3));
+
+  joint_angles_msg.name.push_back("l_ank_pitch");
+  joint_angles_msg.position.push_back(lleg_jnt_angle_(4));
+
+  joint_angles_msg.name.push_back("l_ank_roll");
+  joint_angles_msg.position.push_back(lleg_jnt_angle_(5));
+
+
 
   leg_joints_pub.publish(joint_angles_msg);
 
@@ -684,7 +724,7 @@ void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam 
   if (!this->getFeetPose()){
     return;
   }
-
+  //Get foot orrientation
   double roll,pitch,yaw;
   rfoot_pose.M.GetRPY(roll,pitch,yaw);
 
@@ -711,9 +751,6 @@ void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam 
 
   ROS_INFO("Test4");
 
-
-
-
 /*
   ROS_INFO("Right foot Rot data: %f, %f, %f, %f, %f, %f, %f, %f, %f",
            rfoot_pose.M.data[0],rfoot_pose.M.data[1],rfoot_pose.M.data[2],
@@ -726,7 +763,6 @@ void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam 
           );
 */
 
-
   double time = 5; // in sec
   int numOfSteps = int (sp.freq*time);
 
@@ -735,19 +771,28 @@ void op3_zmp_quasistatic::goToInitialPose(KDL::Frame pelvis_des_pose, stepParam 
 
   double dx = (pelvis_des_pose.p.x()-pelvis_pose.p.x())/numOfSteps;
   double dz = (pelvis_des_pose.p.z()-pelvis_pose.p.z())/numOfSteps;
-  double dp = (des_pitch-pitch)/numOfSteps;
+  double dp = (des_pitch-pitch)/numOfSteps; // (des_pitch-pitch)/numOfSteps;
 
   KDL::Frame pos = pelvis_pose;
 
+  double x = pos.p.data[0];
+  double z = pos.p.data[2];
+
   for(int i=0;i<numOfSteps;i++){
-    pos.p.data[0] += dx;
-    pos.p.data[2] += dz;
+    //pos.p.data[0] += dx;
+    //pos.p.data[2] += dz;
     //pitch += dp;
     //pos.M.RPY(0.0,pitch,0.0);
+    x += dx;
+    z += dz;
+    pitch += dp;
+
+    pos = KDL::Frame(KDL::Rotation::RPY(0.0, pitch, 0.0),
+                     KDL::Vector(x, 0.0, z));
 
     std::cout<<"pos.p.x() = "<<pos.p.x()<<std::endl;
     std::cout<<"pos.p.z() = "<<pos.p.z()<<std::endl;
-    //std::cout<<"pos_pitch = "<<pitch<<std::endl;
+    std::cout<<"pos_pitch = "<<pitch<<std::endl;
 
     this->movePelvis(pos, rleg_joint_pos_, "Right");
     this->movePelvis(pos, lleg_joint_pos_, "Left");
@@ -1052,23 +1097,20 @@ void op3_zmp_quasistatic::locomotion(stepParam sp){
   //present_joint_states_sub = node.subscribe("/robotis/present_joint_states",1000, &op3_zmp_quasistatic::pres_state_callback, this);
 
 
-  //ros::Rate rate = sp.freq;
-  //
-  //long unsigned int counter = 0;
-  //
-  //for(; counter<rleg_joint_angles.size(); counter++){
-  //
-  //  if(ros::ok()){
-  //    this->publishMessageROSMan(rleg_joint_angles.at(counter), lleg_joint_angles.at(counter));
-  //  }
-  //  else
-  //    break;
-  //
-  //  rate.sleep();
-  //}
+  ros::Rate rate = sp.freq;
 
-  this->setDirectModule();
+  long unsigned int counter = 0;
 
+  for(; counter<rleg_joint_angles.size(); counter++){
+
+    if(ros::ok()){
+      this->publishMessageROSMan(rleg_joint_angles.at(counter), lleg_joint_angles.at(counter));
+    }
+    else
+      break;
+
+    rate.sleep();
+  }
 
 
 }
@@ -1147,8 +1189,15 @@ void op3_zmp_quasistatic::setDirectModule(){
   joint_name.push_back("r_ank_pitch");
   joint_name.push_back("r_ank_roll");
 
+  joint_name.push_back("l_hip_yaw");
+  joint_name.push_back("l_hip_roll");
+  joint_name.push_back("l_hip_pitch");
+  joint_name.push_back("l_knee");
+  joint_name.push_back("l_ank_pitch");
+  joint_name.push_back("l_ank_roll");
+
   std::vector<std::string> joint_module;
-  joint_module.resize(JOINT_NUM);
+  joint_module.resize(2*JOINT_NUM);
 
   this->getCurrentModule(joint_name, joint_module);
 
@@ -1157,9 +1206,8 @@ void op3_zmp_quasistatic::setDirectModule(){
     if(*i != "direct_control_module")
       *i = "direct_control_module";
   }
-
   this->setJointModule(joint_name, joint_module);
-  ROS_INFO("");
+  ROS_INFO(" ");
   this->getCurrentModule(joint_name, joint_module);
 
 }
