@@ -213,8 +213,9 @@ private:
   void publishMessageROSMan(Eigen::VectorXd rleg_jnt_angle_, Eigen::VectorXd lleg_jnt_angle_);
   void keyboardContolCallback(const std_msgs::String::ConstPtr &cntrl_status);
   bool getCurrentModule(std::vector<std::string> &joint_name, std::vector<std::string> &joint_module);
-  void setJointModule(const std::vector<std::string> &joint_name, const std::vector<std::string> &module_name);
-  void setDirectModule();
+  void setJointModule(const std::vector<std::string> &joint_name, const std::vector<std::string> &module_name); // service call to set module
+  void setLegsModule(std::string moduleName); // Module for legs joints
+  void setModule(std::string moduleName); // Module for whole joints
 
 
 

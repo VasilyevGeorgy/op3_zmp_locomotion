@@ -29,7 +29,8 @@ int main (int argc, char **argv){
   rleg_joint_pos_.resize(JOINT_NUM);
   lleg_joint_pos_.resize(JOINT_NUM);
 
-  move.goToInitialPose(goalPose, sp);
+  //move.goToInitialPose(goalPose, sp);
+  move.quasiStaticPlaner(goalPose, sp);
   move.locomotion(sp);
 
 
